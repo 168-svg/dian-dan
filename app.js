@@ -18,25 +18,27 @@ App({
     },
 
     loadUserFromStorage() {
-        const userInfo = wx.getStorageSync('userInfo');
-        const hasLogin = wx.getStorageSync('hasLogin');
-        const isGuest = wx.getStorageSync('isGuest');
-        if (userInfo && hasLogin === true) {
-            this.globalData.userInfo = userInfo;
-            this.globalData.hasLogin = true;
-            this.globalData.isGuest = isGuest === true;
-        } else if (userInfo) {
-            wx.removeStorageSync('userInfo');
-            wx.removeStorageSync('hasLogin');
-            wx.removeStorageSync('isGuest');
+        try {
+            const userInfo = wx.getStorageSync('userInfo');
+            const hasLogin = wx.getStorageSync('hasLogin');
+            const isGuest = wx.getStorageSync('isGuest');
+            if (userInfo && hasLogin) {
+                this.globalData.userInfo = userInfo;
+                this.globalData.hasLogin = true;
+                this.globalData.isGuest = !!isGuest;
+            }
+        } catch (e) {
+            console.error('加载用户信息失败', e);
         }
     },
 
     saveUserToStorage() {
-        if (this.globalData.userInfo) {
+        try {
             wx.setStorageSync('userInfo', this.globalData.userInfo);
             wx.setStorageSync('hasLogin', this.globalData.hasLogin);
             wx.setStorageSync('isGuest', this.globalData.isGuest);
+        } catch (e) {
+            console.error('保存用户信息失败', e);
         }
     },
 

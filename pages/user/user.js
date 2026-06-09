@@ -45,6 +45,16 @@ Page({
     },
 
     onWechatLogin() {
+        if (!wx.getUserProfile) {
+            app.login({
+                nickName: '微信用户',
+                avatarUrl: '/images/user/default-avatar.png'
+            });
+            this.loadUserInfo();
+            wx.showToast({ title: '登录成功', icon: 'success' });
+            return;
+        }
+
         wx.getUserProfile({
             desc: '用于完善会员资料',
             success: (res) => {
