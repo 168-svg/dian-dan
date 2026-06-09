@@ -6,37 +6,61 @@ const DB_PATH = path.join(__dirname, 'data.db');
 
 let db;
 
+function safeStr(val, maxLen = 500) {
+    if (val === null || val === undefined) return '';
+    const s = String(val).trim();
+    return s.substring(0, Math.min(s.length, maxLen));
+}
+
 function saveDB() {
-    if (db) {
-        fs.writeFileSync(DB_PATH, Buffer.from(db.export()));
+    try {
+        if (db) {
+            fs.writeFileSync(DB_PATH, Buffer.from(db.export()));
+        }
+    } catch (err) {
+        console.error('保存数据库失败:', err);
     }
 }
 
 function queryAll(sql, params = []) {
-    const stmt = db.prepare(sql);
-    if (params.length > 0) stmt.bind(params);
-    const results = [];
-    while (stmt.step()) {
-        results.push(stmt.getAsObject());
+    try {
+        const stmt = db.prepare(sql);
+        if (params.length > 0) stmt.bind(params);
+        const results = [];
+        while (stmt.step()) {
+            results.push(stmt.getAsObject());
+        }
+        stmt.free();
+        return results;
+    } catch (err) {
+        console.error('查询失败:', err);
+        return [];
     }
-    stmt.free();
-    return results;
 }
 
 function queryOne(sql, params = []) {
-    const stmt = db.prepare(sql);
-    if (params.length > 0) stmt.bind(params);
-    let result = null;
-    if (stmt.step()) {
-        result = stmt.getAsObject();
+    try {
+        const stmt = db.prepare(sql);
+        if (params.length > 0) stmt.bind(params);
+        let result = null;
+        if (stmt.step()) {
+            result = stmt.getAsObject();
+        }
+        stmt.free();
+        return result;
+    } catch (err) {
+        console.error('查询失败:', err);
+        return null;
     }
-    stmt.free();
-    return result;
 }
 
 function execute(sql, params = []) {
-    db.run(sql, params);
-    saveDB();
+    try {
+        db.run(sql, params);
+        saveDB();
+    } catch (err) {
+        console.error('执行失败:', err);
+    }
 }
 
 function lastInsertId() {
@@ -47,8 +71,13 @@ function lastInsertId() {
 async function initDB() {
     const SQL = await initSqlJs();
     if (fs.existsSync(DB_PATH)) {
-        const buffer = fs.readFileSync(DB_PATH);
-        db = new SQL.Database(buffer);
+        try {
+            const buffer = fs.readFileSync(DB_PATH);
+            db = new SQL.Database(buffer);
+        } catch (err) {
+            console.error('加载数据库失败，新建数据库', err);
+            db = new SQL.Database();
+        }
     } else {
         db = new SQL.Database();
     }
@@ -173,91 +202,141 @@ function getCategories() {
 }
 
 function addCategory(name, icon, sort_order) {
-    execute('INSERT INTO categories (name, icon, sort_order) VALUES (?, ?, ?)', [name, icon || '', sort_order || 0]);
+    const n = safeStr(name, 50);
+    const i = safeStr(icon, 255);
+    const s = Math.max(0, Math.min(1000, parseInt(sort_order) || 0));
+    if (!n) return { id: null, error: '分类名称不能为空' };
+    execute('INSERT INTO categories (name, icon, sort_order) VALUES (?, ?, ?)', [n, i, s]);
     return { id: lastInsertId() };
 }
 
 function updateCategory(id, name, icon, sort_order) {
-    execute('UPDATE categories SET name=?, icon=?, sort_order=? WHERE id=?', [name, icon || '', sort_order || 0, id]);
+    const n = safeStr(name, 50);
+    const i = safeStr(icon, 255);
+    const s = Math.max(0, Math.min(1000, parseInt(sort_order) || 0));
+    if (!n) return;
+    execute('UPDATE categories SET name=?, icon=?, sort_order=? WHERE id=?', [n, i, s, id]);
 }
 
 function deleteCategory(id) {
+    if (!parseInt(id)) return;
     execute('DELETE FROM categories WHERE id=?', [id]);
 }
 
 function getFoods(categoryId, page, pageSize) {
-    let sql, params;
+    let sql = 'SELECT * FROM foods WHERE is_on_sale=1';
+    let params = [];
     if (categoryId) {
-        sql = 'SELECT * FROM foods WHERE category_id=? AND is_on_sale=1 ORDER BY id';
-        params = [categoryId];
-    } else {
-        sql = 'SELECT * FROM foods WHERE is_on_sale=1 ORDER BY id';
-        params = [];
+        sql += ' AND category_id=?';
+        params.push(categoryId);
     }
+    sql += ' ORDER BY id';
     if (page && pageSize) {
-        const offset = (page - 1) * pageSize;
+        const p = Math.max(1, parseInt(page) || 1);
+        const ps = Math.max(1, Math.min(200, parseInt(pageSize) || 10));
         sql += ' LIMIT ? OFFSET ?';
-        params.push(pageSize, offset);
+        params.push(ps, (p - 1) * ps);
     }
     return queryAll(sql, params);
 }
 
 function getFoodsCount(categoryId) {
     if (categoryId) {
-        return queryOne('SELECT COUNT(*) as c FROM foods WHERE category_id=? AND is_on_sale=1', [categoryId]).c;
+        const r = queryOne('SELECT COUNT(*) as c FROM foods WHERE category_id=? AND is_on_sale=1', [categoryId]);
+        return r ? r.c : 0;
     }
-    return queryOne('SELECT COUNT(*) as c FROM foods WHERE is_on_sale=1').c;
+    const r = queryOne('SELECT COUNT(*) as c FROM foods WHERE is_on_sale=1');
+    return r ? r.c : 0;
 }
 
 function getFoodById(id) {
+    if (!parseInt(id)) return null;
     return queryOne('SELECT * FROM foods WHERE id=?', [id]);
 }
 
 function getHotFoods(limit) {
-    return queryAll('SELECT * FROM foods WHERE is_on_sale=1 ORDER BY sales DESC LIMIT ?', [limit || 6]);
+    const l = Math.max(1, Math.min(100, parseInt(limit) || 6));
+    return queryAll('SELECT * FROM foods WHERE is_on_sale=1 ORDER BY sales DESC LIMIT ?', [l]);
 }
 
 function addFood(data) {
-    execute(`INSERT INTO foods (name, category_id, image, price, desc, detail, video, sales, is_on_sale)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [data.name, data.category_id, data.image || '', data.price, data.desc || '', data.detail || '', data.video || '', data.sales || 0, data.is_on_sale !== undefined ? data.is_on_sale : 1]);
+    const d = {
+        name: safeStr(data.name, 100),
+        category_id: parseInt(data.category_id) || 0,
+        image: safeStr(data.image, 255),
+        price: Math.max(0, parseFloat(data.price) || 0),
+        desc: safeStr(data.desc, 200),
+        detail: safeStr(data.detail, 2000),
+        video: safeStr(data.video, 255),
+        sales: Math.max(0, parseInt(data.sales) || 0),
+        is_on_sale: (data.is_on_sale === 0 || data.is_on_sale === '0') ? 0 : 1
+    };
+    if (!d.name || !d.category_id) return { id: null };
+    execute('INSERT INTO foods (name, category_id, image, price, desc, detail, video, sales, is_on_sale) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [d.name, d.category_id, d.image, d.price, d.desc, d.detail, d.video, d.sales, d.is_on_sale]);
     return { id: lastInsertId() };
 }
 
 function updateFood(id, data) {
-    execute(`UPDATE foods SET name=?, category_id=?, image=?, price=?, desc=?, detail=?, video=?, sales=?, is_on_sale=?
-    WHERE id=?`, [data.name, data.category_id, data.image || '', data.price, data.desc || '', data.detail || '', data.video || '', data.sales || 0, data.is_on_sale !== undefined ? data.is_on_sale : 1, id]);
+    const fid = parseInt(id);
+    if (!fid) return;
+    const d = {
+        name: safeStr(data.name, 100),
+        category_id: parseInt(data.category_id) || 0,
+        image: safeStr(data.image, 255),
+        price: Math.max(0, parseFloat(data.price) || 0),
+        desc: safeStr(data.desc, 200),
+        detail: safeStr(data.detail, 2000),
+        video: safeStr(data.video, 255),
+        sales: Math.max(0, parseInt(data.sales) || 0),
+        is_on_sale: (data.is_on_sale === 0 || data.is_on_sale === '0') ? 0 : 1
+    };
+    if (!d.name || !d.category_id) return;
+    execute('UPDATE foods SET name=?, category_id=?, image=?, price=?, desc=?, detail=?, video=?, sales=?, is_on_sale=? WHERE id=?', [d.name, d.category_id, d.image, d.price, d.desc, d.detail, d.video, d.sales, d.is_on_sale, fid]);
 }
 
 function deleteFood(id) {
-    execute('DELETE FROM foods WHERE id=?', [id]);
+    const fid = parseInt(id);
+    if (!fid) return;
+    execute('DELETE FROM foods WHERE id=?', [fid]);
 }
 
 function getOrders(status, userId) {
+    const uid = parseInt(userId) || 0;
     let sql = 'SELECT * FROM orders WHERE user_id=?';
-    let params = [userId || 0];
-    
+    let params = [uid];
     if (status && status !== 'all') {
         sql += ' AND status=?';
-        params.push(status);
+        params.push(safeStr(status, 20));
     }
-    
     sql += ' ORDER BY create_time DESC';
     return queryAll(sql, params);
 }
 
 function createOrder(data) {
     const id = 'DD' + Date.now() + Math.random().toString(36).slice(2, 6).toUpperCase();
-    const userId = data.user_id || 0;
-    execute('INSERT INTO orders (id, user_id, items, total, status, remark, table_no) VALUES (?, ?, ?, ?, ?, ?, ?)', [id, userId, JSON.stringify(data.items), data.total, 'pending', data.remark || '', data.table_no || '']);
+    const userId = parseInt(data.user_id) || 0;
+    const total = Math.max(0, parseFloat(data.total) || 0);
+    const remark = safeStr(data.remark, 200);
+    const tableNo = safeStr(data.table_no, 20);
+    if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
+        return { id: null, error: '订单商品不能为空' };
+    }
+    const items = JSON.stringify(data.items);
+    execute('INSERT INTO orders (id, user_id, items, total, status, remark, table_no) VALUES (?, ?, ?, ?, ?, ?, ?)', [id, userId, items, total, 'pending', remark, tableNo]);
     return { id };
 }
 
 function updateOrderStatus(id, status) {
-    execute('UPDATE orders SET status=? WHERE id=?', [status, id]);
+    const sid = safeStr(id, 50);
+    const ss = safeStr(status, 20);
+    if (!sid || !ss) return;
+    execute('UPDATE orders SET status=? WHERE id=?', [ss, sid]);
 }
 
 function deleteOrder(id) {
-    execute('DELETE FROM orders WHERE id=?', [id]);
+    const sid = safeStr(id, 50);
+    if (!sid) return;
+    execute('DELETE FROM orders WHERE id=?', [sid]);
 }
 
 function getBanners() {
@@ -265,28 +344,38 @@ function getBanners() {
 }
 
 function addBanner(image, sort_order) {
-    execute('INSERT INTO banners (image, sort_order) VALUES (?, ?)', [image, sort_order || 0]);
+    const img = safeStr(image, 255);
+    if (!img) return { id: null };
+    const s = Math.max(0, Math.min(1000, parseInt(sort_order) || 0));
+    execute('INSERT INTO banners (image, sort_order) VALUES (?, ?)', [img, s]);
     return { id: lastInsertId() };
 }
 
 function updateBanner(id, image, sort_order) {
-    execute('UPDATE banners SET image=?, sort_order=? WHERE id=?', [image, sort_order || 0, id]);
+    const bid = parseInt(id);
+    if (!bid) return;
+    const img = safeStr(image, 255);
+    if (!img) return;
+    const s = Math.max(0, Math.min(1000, parseInt(sort_order) || 0));
+    execute('UPDATE banners SET image=?, sort_order=? WHERE id=?', [img, s, bid]);
 }
 
 function deleteBanner(id) {
-    execute('DELETE FROM banners WHERE id=?', [id]);
+    const bid = parseInt(id);
+    if (!bid) return;
+    execute('DELETE FROM banners WHERE id=?', [bid]);
 }
 
 function getDashboard() {
-    const totalOrders = queryOne('SELECT COUNT(*) as c FROM orders').c;
-    const todayOrders = queryOne("SELECT COUNT(*) as c FROM orders WHERE date(create_time)=date('now','localtime')").c;
-    const totalRevenue = queryOne("SELECT COALESCE(SUM(total),0) as c FROM orders WHERE status!='cancelled'").c;
-    const todayRevenue = queryOne("SELECT COALESCE(SUM(total),0) as c FROM orders WHERE status!='cancelled' AND date(create_time)=date('now','localtime')").c;
-    const pendingOrders = queryOne("SELECT COUNT(*) as c FROM orders WHERE status='pending'").c;
-    const cookingOrders = queryOne("SELECT COUNT(*) as c FROM orders WHERE status='cooking'").c;
-    const completedOrders = queryOne("SELECT COUNT(*) as c FROM orders WHERE status='completed'").c;
-    const totalFoods = queryOne('SELECT COUNT(*) as c FROM foods').c;
-    const totalCategories = queryOne('SELECT COUNT(*) as c FROM categories').c;
+    const totalOrders = queryOne('SELECT COUNT(*) as c FROM orders').c || 0;
+    const todayOrders = queryOne("SELECT COUNT(*) as c FROM orders WHERE date(create_time)=date('now','localtime')").c || 0;
+    const totalRevenue = queryOne("SELECT COALESCE(SUM(total),0) as c FROM orders WHERE status!='cancelled'").c || 0;
+    const todayRevenue = queryOne("SELECT COALESCE(SUM(total),0) as c FROM orders WHERE status!='cancelled' AND date(create_time)=date('now','localtime')").c || 0;
+    const pendingOrders = queryOne("SELECT COUNT(*) as c FROM orders WHERE status='pending'").c || 0;
+    const cookingOrders = queryOne("SELECT COUNT(*) as c FROM orders WHERE status='cooking'").c || 0;
+    const completedOrders = queryOne("SELECT COUNT(*) as c FROM orders WHERE status='completed'").c || 0;
+    const totalFoods = queryOne('SELECT COUNT(*) as c FROM foods').c || 0;
+    const totalCategories = queryOne('SELECT COUNT(*) as c FROM categories').c || 0;
 
     return {
         totalOrders,
@@ -302,30 +391,48 @@ function getDashboard() {
 }
 
 function getUserById(id) {
-    const user = queryOne('SELECT * FROM users WHERE id=?', [id]);
+    const uid = parseInt(id);
+    if (!uid) return null;
+    const user = queryOne('SELECT * FROM users WHERE id=?', [uid]);
     if (user) delete user.password;
     return user;
 }
 
 function getUserByUsername(username) {
-    return queryOne('SELECT * FROM users WHERE username=?', [username]);
+    const u = safeStr(username, 20);
+    if (!u) return null;
+    return queryOne('SELECT * FROM users WHERE username=?', [u]);
 }
 
 function createUser(username, password, nickname = '', phone = '', isGuest = 0) {
-    execute('INSERT INTO users (username, password, nickname, phone, is_guest) VALUES (?, ?, ?, ?, ?)', [username, password, nickname, phone, isGuest]);
+    const u = safeStr(username, 20);
+    const p = safeStr(password, 100);
+    if (!u || !p) return null;
+    const nn = safeStr(nickname, 50);
+    const ph = safeStr(phone, 20);
+    const ig = isGuest ? 1 : 0;
+    execute('INSERT INTO users (username, password, nickname, phone, is_guest) VALUES (?, ?, ?, ?, ?)', [u, p, nn, ph, ig]);
     const userId = lastInsertId();
     return getUserById(userId);
 }
 
 function updateUser(id, data) {
+    const uid = parseInt(id);
+    if (!uid || !data) return;
     const fields = [];
     const params = [];
-    if (data.nickname !== undefined) { fields.push('nickname=?'); params.push(data.nickname); }
-    if (data.phone !== undefined) { fields.push('phone=?'); params.push(data.phone); }
-    if (data.avatar !== undefined) { fields.push('avatar=?'); params.push(data.avatar); }
-    if (data.password !== undefined) { fields.push('password=?'); params.push(data.password); }
+    if (data.nickname !== undefined) { fields.push('nickname=?'); params.push(safeStr(data.nickname, 50)); }
+    if (data.phone !== undefined) { fields.push('phone=?'); params.push(safeStr(data.phone, 20)); }
+    if (data.avatar !== undefined) { fields.push('avatar=?'); params.push(safeStr(data.avatar, 255)); }
+    if (data.password !== undefined) {
+        const pw = safeStr(data.password, 100);
+        if (pw.length >= 6) {
+            fields.push('password=?');
+            params.push(pw);
+        }
+    }
     if (fields.length === 0) return;
-    params.push(id);
+    params.push(uid);
     execute(`UPDATE users SET ${fields.join(',')} WHERE id=?`, params);
 }
 
