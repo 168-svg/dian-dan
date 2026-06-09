@@ -1554,7 +1554,10 @@
                 saveUser(res.data);
                 closeLogin();
                 showToast('注册成功', 'success');
-                renderUserPage();
+                setTimeout(() => {
+                    renderUserPage();
+                    loadOrders();
+                }, 300);
             } else {
                 showToast(res.msg || '注册失败', 'error');
             }
