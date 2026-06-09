@@ -1524,6 +1524,7 @@
             if (res.code === 0) {
                 saveUser(res.data);
                 closeLogin();
+                closeCart();
                 showToast('登录成功', 'success');
                 setTimeout(() => {
                     renderUserPage();
@@ -1553,6 +1554,7 @@
             if (res.code === 0) {
                 saveUser(res.data);
                 closeLogin();
+                closeCart();
                 showToast('注册成功', 'success');
                 setTimeout(() => {
                     renderUserPage();
@@ -1572,6 +1574,7 @@
             if (res.code === 0) {
                 saveUser(res.data);
                 closeLogin();
+                closeCart();
                 showToast('游客登录成功', 'success');
                 setTimeout(() => {
                     renderUserPage();
