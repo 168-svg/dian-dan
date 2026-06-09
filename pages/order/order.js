@@ -1,6 +1,24 @@
 'use strict';
 
 const app = getApp();
+const { apiGetOrders, apiDeleteOrder, apiUpdateOrderStatus } = require('../../utils/api');
+
+function formatTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    const pad = n => n < 10 ? '0' + n : '' + n;
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function getStatusText(status) {
+    const map = {
+        pending: '待处理',
+        cooking: '制作中',
+        done: '已完成',
+        cancelled: '已取消'
+    };
+    return map[status] || '未知';
+}
 
 Page({
     data: {
@@ -14,32 +32,46 @@ Page({
         this.loadOrders();
     },
 
-    loadOrders() {
-        const allOrders = app.globalData.orders || [];
-        const { currentTab } = this.data;
-
-        let orders = allOrders;
-        if (currentTab === 1) {
-            orders = allOrders.filter(o => o.status === 'pending');
-        } else if (currentTab === 2) {
-            orders = allOrders.filter(o => o.status === 'cooking');
-        } else if (currentTab === 3) {
-            orders = allOrders.filter(o => o.status === 'done');
+    async loadOrders() {
+        const user_id = app.getUserId();
+        if (!user_id) {
+            this.setData({ orders: [], isEmpty: true });
+            return;
         }
 
-        const formattedOrders = orders.map(order => ({
-            ...order,
-            items: order.items.map(item => ({
-                ...item,
-                count: item.count || 0
-            })),
-            totalText: order.total.toFixed(2)
-        }));
+        wx.showLoading({ title: '加载中...' });
 
-        this.setData({
-            orders: formattedOrders,
-            isEmpty: orders.length === 0
-        });
+        try {
+            const res = await apiGetOrders(user_id);
+            wx.hideLoading();
+
+            if (res.code === 0) {
+                const { currentTab } = this.data;
+                let allOrders = (res.data || []).map(o => ({
+                    id: o.id,
+                    order_no: o.order_no,
+                    items: (o.items && typeof o.items === 'string' ? JSON.parse(o.items || '[]') : (o.items || [])),
+                    total: o.total,
+                    totalText: Number(o.total).toFixed(2),
+                    status: o.status,
+                    statusText: getStatusText(o.status),
+                    createTime: formatTime(o.created_at || o.createdAt),
+                    remark: o.remark || ''
+                })).sort((a, b) => b.id - a.id);
+
+                let orders = allOrders;
+                if (currentTab === 1) orders = allOrders.filter(o => o.status === 'pending');
+                else if (currentTab === 2) orders = allOrders.filter(o => o.status === 'cooking');
+                else if (currentTab === 3) orders = allOrders.filter(o => o.status === 'done');
+
+                this.setData({ orders, isEmpty: orders.length === 0 });
+            } else {
+                this.setData({ orders: [], isEmpty: true });
+            }
+        } catch (e) {
+            wx.hideLoading();
+            this.setData({ orders: [], isEmpty: true });
+        }
     },
 
     onTabTap(e) {
@@ -57,15 +89,32 @@ Page({
 
         wx.showModal({
             title: '订单详情',
-            content: `订单号：${order.id}
-时间：${order.createTime}
-状态：${order.statusText}
-菜品：
-${itemsStr}
-${order.remark ? '备注：' + order.remark : ''}
-合计：¥${order.total.toFixed(2)}`,
+            content: `订单号：${order.order_no}\n时间：${order.createTime}\n状态：${order.statusText}\n菜品：\n${itemsStr}\n${order.remark ? '备注：' + order.remark : ''}\n合计：¥${order.totalText}`,
             showCancel: false,
             confirmText: '知道了'
+        });
+    },
+
+    onCancelOrder(e) {
+        const { id } = e.currentTarget.dataset;
+        wx.showModal({
+            title: '提示',
+            content: '确定要取消此订单吗？',
+            success: async (res) => {
+                if (res.confirm) {
+                    try {
+                        const r = await apiUpdateOrderStatus(id, 'cancelled');
+                        if (r.code === 0) {
+                            wx.showToast({ title: '已取消', icon: 'success' });
+                            this.loadOrders();
+                        } else {
+                            wx.showToast({ title: '取消失败', icon: 'none' });
+                        }
+                    } catch (err) {
+                        wx.showToast({ title: '操作失败', icon: 'none' });
+                    }
+                }
+            }
         });
     },
 
@@ -74,12 +123,19 @@ ${order.remark ? '备注：' + order.remark : ''}
         wx.showModal({
             title: '提示',
             content: '确定要删除此订单吗？',
-            success: (res) => {
+            success: async (res) => {
                 if (res.confirm) {
-                    const orders = app.globalData.orders.filter(o => o.id !== id);
-                    app.globalData.orders = orders;
-                    app.saveOrdersToStorage();
-                    this.loadOrders();
+                    try {
+                        const r = await apiDeleteOrder(id);
+                        if (r.code === 0) {
+                            wx.showToast({ title: '已删除', icon: 'success' });
+                            this.loadOrders();
+                        } else {
+                            wx.showToast({ title: '删除失败', icon: 'none' });
+                        }
+                    } catch (err) {
+                        wx.showToast({ title: '操作失败', icon: 'none' });
+                    }
                 }
             }
         });

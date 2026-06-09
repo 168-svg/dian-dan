@@ -1,7 +1,7 @@
 'use strict';
 
 const app = getApp();
-const { formatDateTime } = require('../../utils/util');
+const { apiCreateOrder } = require('../../utils/api');
 
 Page({
     data: {
@@ -78,39 +78,61 @@ Page({
         this.setData({ remark: e.detail.value });
     },
 
-    onSubmit() {
+    async onSubmit() {
         if (this.data.cartItems.length === 0) {
             wx.showToast({ title: '购物车为空', icon: 'none' });
             return;
         }
 
-        const order = {
-            id: 'ORD' + Date.now(),
-            items: [...this.data.cartItems],
-            total: this.data.cartTotal,
-            remark: this.data.remark,
-            status: 'pending',
-            statusText: '待处理',
-            createTime: formatDateTime(new Date())
-        };
+        const user_id = app.getUserId();
+        if (!user_id) {
+            wx.showModal({
+                title: '提示',
+                content: '请先登录后再下单',
+                confirmText: '去登录',
+                success: (res) => {
+                    if (res.confirm) {
+                        wx.switchTab({ url: '/pages/user/user' });
+                    }
+                }
+            });
+            return;
+        }
 
-        const orders = app.globalData.orders;
-        orders.unshift(order);
-        app.globalData.orders = orders;
-        app.saveOrdersToStorage();
+        wx.showLoading({ title: '提交订单中...' });
 
-        app.clearCart();
-        this.setData({ remark: '' });
+        try {
+            const items = this.data.cartItems.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                count: item.count
+            }));
 
-        wx.showToast({
-            title: '下单成功！',
-            icon: 'success',
-            duration: 1500
-        });
+            const res = await apiCreateOrder({
+                items,
+                total: this.data.cartTotal,
+                remark: this.data.remark,
+                table_no: '',
+                user_id
+            });
 
-        setTimeout(() => {
-            wx.switchTab({ url: '/pages/order/order' });
-        }, 1500);
+            wx.hideLoading();
+
+            if (res.code === 0) {
+                app.clearCart();
+                this.setData({ remark: '' });
+                wx.showToast({ title: '下单成功！', icon: 'success', duration: 1500 });
+                setTimeout(() => {
+                    wx.switchTab({ url: '/pages/order/order' });
+                }, 1500);
+            } else {
+                wx.showToast({ title: res.msg || '下单失败', icon: 'none' });
+            }
+        } catch (e) {
+            wx.hideLoading();
+            wx.showToast({ title: '网络错误，下单失败', icon: 'none' });
+        }
     },
 
     onGoMenu() {

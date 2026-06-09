@@ -1,33 +1,37 @@
 <view class="container">
   <view class="user-header">
     <view class="user-info" wx:if="{{hasLogin}}">
-      <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" />
+      <image class="avatar" src="{{userInfo.avatar}}" mode="aspectFill" />
       <view class="user-info-detail">
         <view class="nickname-row">
-          <text class="nickname">{{userInfo.nickName}}</text>
+          <text class="nickname">{{userInfo.nickname}}</text>
           <view class="guest-tag" wx:if="{{isGuest}}">游客</view>
         </view>
-        <text class="user-tip" wx:if="{{isGuest}}">点击下方按钮可以切换为微信登录</text>
+        <text class="user-tip" wx:if="{{isGuest}}">点击下方按钮可以切换为正式账号登录</text>
       </view>
     </view>
     <view class="login-area" wx:else>
       <image class="avatar-placeholder" src="/images/user/default-avatar.png" mode="aspectFill" />
       <view class="login-buttons">
-        <view class="login-btn wechat-btn" bindtap="onWechatLogin">
-          <text class="btn-icon">💬</text>
-          <text class="btn-text">微信登录</text>
-        </view>
-        <view class="login-btn guest-btn" bindtap="onGuestLogin">
+        <view class="login-btn wechat-btn" bindtap="onLoginTap">
           <text class="btn-icon">👤</text>
+          <text class="btn-text">账号登录</text>
+        </view>
+        <view class="login-btn wechat-btn register-btn" bindtap="onRegisterTap">
+          <text class="btn-icon">📝</text>
+          <text class="btn-text">注册新账号</text>
+        </view>
+        <view class="login-btn guest-btn" bindtap="onGuestLoginTap">
+          <text class="btn-icon">👥</text>
           <text class="btn-text">游客登录</text>
         </view>
       </view>
     </view>
   </view>
 
-  <view class="switch-login-btn" wx:if="{{hasLogin && isGuest}}" bindtap="onWechatLogin">
-    <text class="switch-icon">💬</text>
-    <text class="switch-text">切换为微信登录</text>
+  <view class="switch-login-btn" wx:if="{{hasLogin && isGuest}}" bindtap="onLoginTap">
+    <text class="switch-icon">👤</text>
+    <text class="switch-text">切换为正式账号登录</text>
   </view>
 
   <view class="order-section">
@@ -39,22 +43,18 @@
       <view class="order-grid-item" bindtap="onOrderTap" data-status="pending">
         <text class="grid-icon">📝</text>
         <text class="grid-label">待处理</text>
-        <view class="grid-badge" wx:if="{{orderSummary.pending > 0}}">{{orderSummary.pending}}</view>
       </view>
       <view class="order-grid-item" bindtap="onOrderTap" data-status="cooking">
         <text class="grid-icon">👨‍🍳</text>
         <text class="grid-label">制作中</text>
-        <view class="grid-badge" wx:if="{{orderSummary.cooking > 0}}">{{orderSummary.cooking}}</view>
       </view>
       <view class="order-grid-item" bindtap="onOrderTap" data-status="done">
         <text class="grid-icon">✅</text>
         <text class="grid-label">已完成</text>
-        <view class="grid-badge" wx:if="{{orderSummary.done > 0}}">{{orderSummary.done}}</view>
       </view>
       <view class="order-grid-item" bindtap="onAllOrders">
         <text class="grid-icon">📋</text>
         <text class="grid-label">全部</text>
-        <view class="grid-badge" wx:if="{{orderSummary.total > 0}}">{{orderSummary.total}}</view>
       </view>
     </view>
   </view>
@@ -90,6 +90,50 @@
   <view class="logout-section" wx:if="{{hasLogin}}">
     <view class="logout-btn" bindtap="onLogout">
       <text>退出登录</text>
+    </view>
+  </view>
+
+  <view class="modal-mask" wx:if="{{showLoginModal}}" bindtap="closeLoginModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-title">
+        <text wx:if="{{loginType === 'login'}}">登录账号</text>
+        <text wx:elif="{{loginType === 'register'}}">注册账号</text>
+        <text wx:else>游客登录</text>
+      </view>
+
+      <view wx:if="{{loginType === 'login' || loginType === 'register'}}">
+        <view class="form-row">
+          <input class="form-input" placeholder="用户名" value="{{loginForm.username}}" data-field="username" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <input class="form-input" placeholder="密码" password value="{{loginForm.password}}" data-field="password" bindinput="onInput" />
+        </view>
+        <view class="form-row" wx:if="{{loginType === 'register'}}">
+          <input class="form-input" placeholder="昵称（可选）" value="{{loginForm.nickname}}" data-field="nickname" bindinput="onInput" />
+        </view>
+        <view class="form-row" wx:if="{{loginType === 'register'}}">
+          <input class="form-input" placeholder="手机号（可选）" value="{{loginForm.phone}}" data-field="phone" bindinput="onInput" type="number" />
+        </view>
+      </view>
+
+      <view wx:if="{{loginType === 'guest'}}" class="guest-tip-box">
+        <text class="guest-tip">游客登录后将使用系统自动分配的账号，下单和订单信息将与该账号关联。</text>
+      </view>
+
+      <view class="modal-switch">
+        <view class="switch-link" wx:if="{{loginType === 'login'}}" data-type="register" bindtap="switchLoginType">还没有账号？去注册</view>
+        <view class="switch-link" wx:if="{{loginType === 'register'}}" data-type="login" bindtap="switchLoginType">已有账号？去登录</view>
+        <view class="switch-link" data-type="guest" bindtap="switchLoginType">也可以用游客登录</view>
+      </view>
+
+      <view class="modal-footer">
+        <view class="modal-btn cancel" bindtap="closeLoginModal">取消</view>
+        <view class="modal-btn confirm" bindtap="confirmLogin">
+          <text wx:if="{{loginType === 'login'}}">登录</text>
+          <text wx:elif="{{loginType === 'register'}}">注册</text>
+          <text wx:else>游客登录</text>
+        </view>
+      </view>
     </view>
   </view>
 </view>

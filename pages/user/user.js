@@ -7,17 +7,14 @@ Page({
         userInfo: null,
         hasLogin: false,
         isGuest: false,
-        orderSummary: {
-            pending: 0,
-            cooking: 0,
-            done: 0,
-            total: 0
-        }
+        showLoginModal: false,
+        loginType: 'login',
+        loginForm: { username: '', password: '', nickname: '', phone: '' },
+        orderSummary: { pending: 0, cooking: 0, done: 0, total: 0 }
     },
 
     onShow() {
         this.loadUserInfo();
-        this.loadOrderSummary();
     },
 
     loadUserInfo() {
@@ -28,50 +25,83 @@ Page({
         });
     },
 
-    loadOrderSummary() {
-        const orders = app.globalData.orders || [];
-        const pending = orders.filter(o => o.status === 'pending').length;
-        const cooking = orders.filter(o => o.status === 'cooking').length;
-        const done = orders.filter(o => o.status === 'done').length;
-
-        this.setData({
-            orderSummary: {
-                pending,
-                cooking,
-                done,
-                total: orders.length
-            }
-        });
+    onGuestLoginTap() {
+        this.setData({ showLoginModal: true, loginType: 'guest', loginForm: { username: '', password: '', nickname: '', phone: '' } });
     },
 
-    onWechatLogin() {
-        if (!wx.getUserProfile) {
-            app.login({
-                nickName: '微信用户',
-                avatarUrl: '/images/user/default-avatar.png'
-            });
-            this.loadUserInfo();
-            wx.showToast({ title: '登录成功', icon: 'success' });
+    onLoginTap() {
+        this.setData({ showLoginModal: true, loginType: 'login', loginForm: { username: '', password: '', nickname: '', phone: '' } });
+    },
+
+    onRegisterTap() {
+        this.setData({ showLoginModal: true, loginType: 'register', loginForm: { username: '', password: '', nickname: '', phone: '' } });
+    },
+
+    switchLoginType(e) {
+        const { type } = e.currentTarget.dataset;
+        this.setData({ loginType: type });
+    },
+
+    onInput(e) {
+        const { field } = e.currentTarget.dataset;
+        this.setData({ [`loginForm.${field}`]: e.detail.value });
+    },
+
+    async confirmLogin() {
+        const { loginType, loginForm } = this.data;
+
+        if (loginType === 'guest') {
+            wx.showLoading({ title: '登录中...' });
+            const ok = await app.guestLogin();
+            wx.hideLoading();
+            if (ok) {
+                this.setData({ showLoginModal: false });
+                this.loadUserInfo();
+                wx.showToast({ title: '游客登录成功', icon: 'success' });
+            } else {
+                wx.showToast({ title: '登录失败', icon: 'none' });
+            }
             return;
         }
 
-        wx.getUserProfile({
-            desc: '用于完善会员资料',
-            success: (res) => {
-                app.login(res.userInfo);
+        if (loginType === 'login') {
+            if (!loginForm.username || !loginForm.password) {
+                wx.showToast({ title: '请填写用户名和密码', icon: 'none' });
+                return;
+            }
+            wx.showLoading({ title: '登录中...' });
+            const ok = await app.loginUser(loginForm.username, loginForm.password);
+            wx.hideLoading();
+            if (ok === true) {
+                this.setData({ showLoginModal: false });
                 this.loadUserInfo();
                 wx.showToast({ title: '登录成功', icon: 'success' });
-            },
-            fail: () => {
-                wx.showToast({ title: '已取消登录', icon: 'none' });
+            } else {
+                wx.showToast({ title: (ok && ok.msg) || '登录失败', icon: 'none' });
             }
-        });
+            return;
+        }
+
+        if (loginType === 'register') {
+            if (!loginForm.username || !loginForm.password) {
+                wx.showToast({ title: '请填写用户名和密码', icon: 'none' });
+                return;
+            }
+            wx.showLoading({ title: '注册中...' });
+            const ok = await app.registerUser(loginForm.username, loginForm.password, loginForm.nickname || loginForm.username, loginForm.phone || '');
+            wx.hideLoading();
+            if (ok === true) {
+                this.setData({ showLoginModal: false });
+                this.loadUserInfo();
+                wx.showToast({ title: '注册成功', icon: 'success' });
+            } else {
+                wx.showToast({ title: (ok && ok.msg) || '注册失败', icon: 'none' });
+            }
+        }
     },
 
-    onGuestLogin() {
-        app.guestLogin();
-        this.loadUserInfo();
-        wx.showToast({ title: '游客登录成功', icon: 'success' });
+    closeLoginModal() {
+        this.setData({ showLoginModal: false });
     },
 
     onLogout() {
@@ -89,9 +119,7 @@ Page({
     },
 
     onOrderTap(e) {
-        const { status } = e.currentTarget.dataset;
         wx.switchTab({ url: '/pages/order/order' });
-        wx.setStorageSync('orderTab', status);
     },
 
     onAllOrders() {
@@ -117,8 +145,8 @@ Page({
 
     onAbout() {
         wx.showModal({
-            title: '关于美味餐厅',
-            content: '美味餐厅 v1.0.0\n为您提供最优质的餐饮服务',
+            title: '关于点餐系统',
+            content: '点餐系统 v1.0.0\n为您提供最优质的餐饮服务',
             showCancel: false,
             confirmText: '知道了'
         });
@@ -131,9 +159,6 @@ Page({
             success: (res) => {
                 if (res.confirm) {
                     app.clearCart();
-                    app.globalData.orders = [];
-                    app.saveOrdersToStorage();
-                    this.loadOrderSummary();
                     wx.showToast({ title: '已清除', icon: 'success' });
                 }
             }

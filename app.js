@@ -1,5 +1,7 @@
 'use strict';
 
+const { apiGetCategories, apiGetFoods, apiGetHotFoods, apiGetBanners, apiGetOrders, apiCreateOrder, apiLogin, apiGuestLogin, apiRegister } = require('./utils/api');
+
 App({
     globalData: {
         cart: [],
@@ -8,24 +10,26 @@ App({
         userInfo: null,
         hasLogin: false,
         isGuest: false,
+        userId: null,
         orders: []
     },
 
     onLaunch() {
         this.loadCartFromStorage();
-        this.loadOrdersFromStorage();
         this.loadUserFromStorage();
     },
 
     loadUserFromStorage() {
         try {
             const userInfo = wx.getStorageSync('userInfo');
+            const userId = wx.getStorageSync('userId');
             const hasLogin = wx.getStorageSync('hasLogin');
             const isGuest = wx.getStorageSync('isGuest');
             if (userInfo && hasLogin) {
                 this.globalData.userInfo = userInfo;
                 this.globalData.hasLogin = true;
                 this.globalData.isGuest = !!isGuest;
+                this.globalData.userId = userId;
             }
         } catch (e) {
             console.error('加载用户信息失败', e);
@@ -35,6 +39,7 @@ App({
     saveUserToStorage() {
         try {
             wx.setStorageSync('userInfo', this.globalData.userInfo);
+            wx.setStorageSync('userId', this.globalData.userId);
             wx.setStorageSync('hasLogin', this.globalData.hasLogin);
             wx.setStorageSync('isGuest', this.globalData.isGuest);
         } catch (e) {
@@ -42,29 +47,77 @@ App({
         }
     },
 
-    login(userInfo) {
-        this.globalData.userInfo = userInfo;
+    login(userData) {
+        this.globalData.userInfo = {
+            id: userData.id,
+            nickname: userData.nickname || userData.username || '用户',
+            username: userData.username,
+            avatar: userData.avatar || userData.avatarUrl || '/images/user/default-avatar.png',
+            phone: userData.phone
+        };
+        this.globalData.userId = userData.id;
         this.globalData.hasLogin = true;
         this.globalData.isGuest = false;
         this.saveUserToStorage();
     },
 
-    guestLogin() {
-        this.globalData.userInfo = {
-            nickName: '游客用户',
-            avatarUrl: '/images/user/default-avatar.png',
-            isGuest: true
-        };
-        this.globalData.hasLogin = true;
-        this.globalData.isGuest = true;
-        this.saveUserToStorage();
+    async guestLogin() {
+        try {
+            const res = await apiGuestLogin();
+            if (res.code === 0) {
+                this.globalData.userInfo = {
+                    id: res.data.id,
+                    nickname: res.data.nickname || '游客用户',
+                    username: res.data.username,
+                    avatar: '/images/user/default-avatar.png',
+                    phone: ''
+                };
+                this.globalData.userId = res.data.id;
+                this.globalData.hasLogin = true;
+                this.globalData.isGuest = true;
+                this.saveUserToStorage();
+                return true;
+            }
+            return false;
+        } catch (e) {
+            console.error('游客登录失败', e);
+            return false;
+        }
+    },
+
+    async registerUser(username, password, nickname, phone) {
+        try {
+            const res = await apiRegister({ username, password, nickname, phone });
+            if (res.code === 0) {
+                this.login(res.data);
+                return true;
+            }
+            return { success: false, msg: res.msg };
+        } catch (e) {
+            return { success: false, msg: '注册失败' };
+        }
+    },
+
+    async loginUser(username, password) {
+        try {
+            const res = await apiLogin({ username, password });
+            if (res.code === 0) {
+                this.login(res.data);
+                return true;
+            }
+            return { success: false, msg: res.msg };
+        } catch (e) {
+            return { success: false, msg: '登录失败' };
+        }
     },
 
     logout() {
         this.globalData.userInfo = null;
+        this.globalData.userId = null;
         this.globalData.hasLogin = false;
         this.globalData.isGuest = false;
         wx.removeStorageSync('userInfo');
+        wx.removeStorageSync('userId');
         wx.removeStorageSync('hasLogin');
         wx.removeStorageSync('isGuest');
     },
@@ -78,17 +131,8 @@ App({
         this.updateCartInfo();
     },
 
-    loadOrdersFromStorage() {
-        const orders = wx.getStorageSync('orders') || [];
-        this.globalData.orders = orders;
-    },
-
     saveCartToStorage() {
         wx.setStorageSync('cart', this.globalData.cart);
-    },
-
-    saveOrdersToStorage() {
-        wx.setStorageSync('orders', this.globalData.orders);
     },
 
     addToCart(food) {
@@ -162,5 +206,9 @@ App({
 
     getCartTotal() {
         return this.globalData.cartTotal;
+    },
+
+    getUserId() {
+        return this.globalData.userId;
     }
 });
