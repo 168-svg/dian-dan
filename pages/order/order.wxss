@@ -80,6 +80,26 @@
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.order-click-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+}
+
+.order-click-area:active {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.order-actions {
+  position: relative;
+  z-index: 20;
 }
 
 .order-header {
@@ -88,6 +108,7 @@
   justify-content: space-between;
   padding-bottom: 16rpx;
   border-bottom: 1rpx solid #f0f0f0;
+  pointer-events: none;
 }
 
 .order-id {
@@ -118,12 +139,14 @@
 
 .order-foods {
   padding: 16rpx 0;
+  pointer-events: none;
 }
 
 .order-food {
   display: flex;
   align-items: center;
   padding: 8rpx 0;
+  pointer-events: none;
 }
 
 .order-food-image {
@@ -167,6 +190,11 @@
   justify-content: space-between;
   padding-top: 16rpx;
   border-top: 1rpx solid #f0f0f0;
+  pointer-events: none;
+}
+
+.order-actions {
+  pointer-events: auto;
 }
 
 .order-time {

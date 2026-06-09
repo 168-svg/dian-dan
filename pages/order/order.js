@@ -1,3 +1,5 @@
+'use strict';
+
 const app = getApp();
 
 Page({
@@ -27,6 +29,10 @@ Page({
 
         const formattedOrders = orders.map(order => ({
             ...order,
+            items: order.items.map(item => ({
+                ...item,
+                count: item.count || 0
+            })),
             totalText: order.total.toFixed(2)
         }));
 

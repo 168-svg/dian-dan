@@ -1,3 +1,5 @@
+'use strict';
+
 const app = getApp();
 const { getFoodById, getAllFoods } = require('../../utils/foodData');
 

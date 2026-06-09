@@ -154,6 +154,7 @@ app.get('/api/dashboard', (req, res) => {
 
 app.use('/images', express.static(path.join(__dirname, '..', 'images')));
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
+app.use('/web', express.static(path.join(__dirname, 'web')));
 
 async function start() {
     await db.initDB();
@@ -164,6 +165,7 @@ async function start() {
         console.log(`点单系统后端服务已启动`);
         console.log(`   API: http://localhost:${PORT}/api`);
         console.log(`   管理后台: http://localhost:${PORT}/admin`);
+        console.log(`   用户端: http://localhost:${PORT}/web`);
     });
 }
 

@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>点单系统 - 用户端</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: #fff;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header .cart-btn {
+            position: relative;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            font-size: 22px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .header .cart-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        .header .cart-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #f5222d;
+            color: #fff;
+            font-size: 11px;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .banner {
+            padding: 12px 16px;
+        }
+
+        .banner-swiper {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .banner-swiper img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .banner-dots {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+        }
+
+        .banner-dots .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .banner-dots .dot.active {
+            width: 18px;
+            background: #fff;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            padding: 16px 16px 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: #ff6b35;
+            border-radius: 2px;
+        }
+
+        .categories {
+            display: flex;
+            gap: 10px;
+            padding: 0 16px 12px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .categories::-webkit-scrollbar {
+            display: none;
+        }
+
+        .cat-item {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            padding: 8px 4px;
+            min-width: 64px;
+            transition: all 0.2s;
+        }
+
+        .cat-item .cat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .cat-item.active .cat-icon {
+            border-color: #ff6b35;
+            box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+        }
+
+        .cat-item .cat-name {
+            font-size: 12px;
+            color: #666;
+            transition: color 0.2s;
+        }
+
+        .cat-item.active .cat-name {
+            color: #ff6b35;
+            font-weight: 600;
+        }
+
+        .food-list {
+            padding: 0 16px;
+        }
+
+        .food-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 12px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .food-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .food-card .food-img {
+            width: 96px;
+            height: 96px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .food-card .food-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-width: 0;
+        }
+
+        .food-card .food-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .food-card .food-desc {
+            font-size: 12px;
+            color: #999;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .food-card .food-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .food-card .food-price {
+            color: #ff6b35;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .food-card .food-price .unit {
+            font-size: 13px;
+        }
+
+        .food-card .food-sales {
+            font-size: 11px;
+            color: #bbb;
+        }
+
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .stepper .btn-minus,
+        .stepper .btn-plus {
+            width: 28px;
+            height: 28px;
+            border: 1px solid #ff6b35;
+            background: #fff;
+            color: #ff6b35;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .stepper .btn-minus {
+            border-radius: 14px 0 0 14px;
+        }
+
+        .stepper .btn-plus {
+            border-radius: 0 14px 14px 0;
+        }
+
+        .stepper .btn-minus:hover,
+        .stepper .btn-plus:hover {
+            background: #fff5f0;
+        }
+
+        .stepper .btn-minus:active,
+        .stepper .btn-plus:active {
+            background: #ff6b35;
+            color: #fff;
+        }
+
+        .stepper .count {
+            width: 28px;
+            height: 28px;
+            border-top: 1px solid #ff6b35;
+            border-bottom: 1px solid #ff6b35;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            background: #fff;
+        }
+
+        .add-btn {
+            background: #ff6b35;
+            color: #fff;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 14px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .add-btn:hover {
+            background: #e55a2b;
+            transform: scale(1.1);
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .empty .text {
+            font-size: 14px;
+        }
+
+        .cart-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 200;
+        }
+
+        .cart-overlay.show {
+            display: block;
+        }
+
+        .cart-panel {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            width: 100%;
+            max-width: 500px;
+            max-height: 70vh;
+            background: #fff;
+            border-radius: 16px 16px 0 0;
+            z-index: 201;
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-panel.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .cart-panel .cart-header {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .cart-panel .cart-header h3 {
+            font-size: 16px;
+        }
+
+        .cart-panel .cart-clear {
+            font-size: 13px;
+            color: #999;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .cart-panel .cart-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .cart-item .cart-item-img {
+            width: 56px;
+            height: 56px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .cart-item .cart-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .cart-item .cart-item-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .cart-item .cart-item-price {
+            font-size: 13px;
+            color: #ff6b35;
+            font-weight: 600;
+        }
+
+        .cart-panel .cart-footer {
+            padding: 16px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .cart-panel .cart-total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .cart-panel .cart-total-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .cart-panel .cart-total-price {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ff6b35;
+        }
+
+        .cart-panel .remark-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+        }
+
+        .cart-panel .remark-input:focus {
+            border-color: #ff6b35;
+        }
+
+        .cart-panel .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: #fff;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cart-panel .submit-btn:hover {
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+        }
+
+        .cart-panel .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .tabbar {
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+            display: flex;
+            border-top: 1px solid #eee;
+            z-index: 50;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .tabbar .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 0;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s;
+        }
+
+        .tabbar .tab-item.active {
+            color: #ff6b35;
+        }
+
+        .tabbar .tab-icon {
+            font-size: 22px;
+            margin-bottom: 2px;
+        }
+
+        .tabbar .tab-label {
+            font-size: 11px;
+        }
+
+        .page {
+            display: none;
+            padding-top: 60px;
+            padding-bottom: 80px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .order-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px;
+            margin: 0 16px 12px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .order-card .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .order-card .order-id {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .order-card .order-status {
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: #fff7e6;
+            color: #fa8c16;
+        }
+
+        .status-cooking {
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+
+        .status-completed {
+            background: #f6ffed;
+            color: #52c41a;
+        }
+
+        .status-cancelled {
+            background: #fff1f0;
+            color: #f5222d;
+        }
+
+        .order-card .order-items {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .order-card .order-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-card .order-total {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ff6b35;
+        }
+
+        .order-card .order-time {
+            font-size: 11px;
+            color: #bbb;
+        }
+
+        .order-tabs {
+            display: flex;
+            padding: 0 16px 12px;
+            gap: 8px;
+        }
+
+        .order-tabs .order-tab {
+            padding: 6px 16px;
+            border-radius: 20px;
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #666;
+        }
+
+        .order-tabs .order-tab.active {
+            background: #ff6b35;
+            color: #fff;
+            border-color: #ff6b35;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 24px;
+            border-radius: 20px;
+            color: #fff;
+            font-size: 14px;
+            z-index: 300;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: #52c41a;
+        }
+
+        .toast.error {
+            background: #f5222d;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .hot-tag {
+            display: inline-block;
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
+        .hot-tag.hot {
+            background: #fff1f0;
+            color: #f5222d;
+        }
+
+        .hot-tag.new {
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>🍽️ 美味餐厅</h1>
+        <button class="cart-btn" onclick="toggleCart()">
+            🛒
+            <span class="cart-badge" id="cartBadge" style="display:none">0</span>
+        </button>
+    </div>
+
+    <div class="page active" id="page-home">
+        <div class="banner">
+            <div class="banner-swiper" id="bannerSwiper"></div>
+        </div>
+
+        <div class="section-title">菜品分类</div>
+        <div class="categories" id="categories"></div>
+
+        <div class="section-title">热销推荐</div>
+        <div class="food-list" id="hotFoods"></div>
+    </div>
+
+    <div class="page" id="page-menu">
+        <div class="categories" id="menuCategories"></div>
+        <div class="section-title" id="menuSectionTitle">全部菜品</div>
+        <div class="food-list" id="menuFoods"></div>
+    </div>
+
+    <div class="page" id="page-orders">
+        <div class="order-tabs" id="orderTabs"></div>
+        <div id="orderList"></div>
+    </div>
+
+    <div class="tabbar">
+        <div class="tab-item active" data-page="home" onclick="switchPage('home')">
+            <span class="tab-icon">🏠</span>
+            <span class="tab-label">首页</span>
+        </div>
+        <div class="tab-item" data-page="menu" onclick="switchPage('menu')">
+            <span class="tab-icon">🍽️</span>
+            <span class="tab-label">点餐</span>
+        </div>
+        <div class="tab-item" data-page="orders" onclick="switchPage('orders')">
+            <span class="tab-icon">📋</span>
+            <span class="tab-label">订单</span>
+        </div>
+    </div>
+
+    <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+    <div class="cart-panel" id="cartPanel">
+        <div class="cart-header">
+            <h3>🛒 购物车</h3>
+            <button class="cart-clear" onclick="clearCart()">清空</button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-footer">
+            <textarea class="remark-input" id="cartRemark" placeholder="订单备注（选填）" rows="2"></textarea>
+            <div class="cart-total-row">
+                <span class="cart-total-label">合计</span>
+                <span class="cart-total-price" id="cartTotal">¥0.00</span>
+            </div>
+            <button class="submit-btn" id="submitBtn" onclick="submitOrder()">提交订单</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API = '/api';
+        let cart = [];
+        let allFoods = [];
+        let allCategories = [];
+        let allOrders = [];
+        let allBanners = [];
+        let currentBannerIndex = 0;
+        let bannerTimer = null;
+
+        function showToast(msg, type) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast ' + type + ' show';
+            clearTimeout(t._timeout);
+            t._timeout = setTimeout(() => t.className = 'toast', 2000);
+        }
+
+        async function api(url, options = {}) {
+            try {
+                const res = await fetch(API + url, { headers: { 'Content-Type': 'application/json' }, ...options });
+                return await res.json();
+            } catch (e) {
+                showToast('网络错误: ' + e.message, 'error');
+                return { code: -1, msg: e.message };
+            }
+        }
+
+        function getCartItem(id) {
+            return cart.find(c => c.id === id);
+        }
+
+        function getCartCount(id) {
+            const item = getCartItem(id);
+            return item ? item.count : 0;
+        }
+
+        function getTotalCartCount() {
+            return cart.reduce((sum, item) => sum + item.count, 0);
+        }
+
+        function getTotalCartPrice() {
+            return cart.reduce((sum, item) => sum + item.price * item.count, 0);
+        }
+
+        function addToCart(food) {
+            const item = getCartItem(food.id);
+            if (item) {
+                item.count++;
+            } else {
+                cart.push({ id: food.id, name: food.name, image: food.image, price: food.price, count: 1 });
+            }
+            updateCartUI();
+        }
+
+        function reduceFromCart(id) {
+            const item = getCartItem(id);
+            if (!item) return;
+            if (item.count > 1) {
+                item.count--;
+            } else {
+                cart = cart.filter(c => c.id !== id);
+            }
+            updateCartUI();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(c => c.id !== id);
+            updateCartUI();
+        }
+
+        function clearCart() {
+            if (cart.length === 0) return;
+            if (confirm('确定要清空购物车吗？')) {
+                cart = [];
+                updateCartUI();
+            }
+        }
+
+        function updateCartUI() {
+            const totalCount = getTotalCartCount();
+            const totalPrice = getTotalCartPrice();
+            const badge = document.getElementById('cartBadge');
+            if (totalCount > 0) {
+                badge.style.display = 'flex';
+                badge.textContent = totalCount > 99 ? '99+' : totalCount;
+            } else {
+                badge.style.display = 'none';
+            }
+            document.getElementById('cartTotal').textContent = '¥' + totalPrice.toFixed(2);
+            document.getElementById('submitBtn').disabled = cart.length === 0;
+
+            const cartItemsEl = document.getElementById('cartItems');
+            if (cart.length === 0) {
+                cartItemsEl.innerHTML = '<div class="empty"><div class="icon">🛒</div><div class="text">购物车是空的</div></div>';
+            } else {
+                cartItemsEl.innerHTML = cart.map(item => `
+              <div class="cart-item">
+                <img class="cart-item-img" src="${item.image}" alt="${item.name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2256%22 height=%2256%22><rect fill=%22%23f5f5f5%22 width=%2256%22 height=%2256%22/><text x=%2228%22 y=%2232%22 text-anchor=%22middle%22 fill=%22%23ccc%22 font-size=%2212%22>暂无</text></svg>'">
+                <div class="cart-item-info">
+                  <div class="cart-item-name">${item.name}</div>
+                  <div class="cart-item-price">¥${item.price} x ${item.count}</div>
+                </div>
+                <div class="stepper">
+                  <button class="btn-minus" onclick="event.stopPropagation();reduceFromCart(${item.id})">−</button>
+                  <span class="count">${item.count}</span>
+                  <button class="btn-plus" onclick="event.stopPropagation();addToCart({id:${item.id},name:'${item.name}',image:'${item.image}',price:${item.price}})">+</button>
+                </div>
+              </div>`).join('');
+            }
+
+            refreshFoodCounts();
+        }
+
+        function refreshFoodCounts() {
+            document.querySelectorAll('.stepper-count[data-id]').forEach(el => {
+                const id = parseInt(el.dataset.id);
+                el.textContent = getCartCount(id);
+            });
+            document.querySelectorAll('.stepper[data-id]').forEach(el => {
+                const id = parseInt(el.dataset.id);
+                const count = getCartCount(id);
+                const minusBtn = el.querySelector('.btn-minus');
+                const countEl = el.querySelector('.stepper-count');
+                const addBtnWrapper = el.parentElement;
+                if (count === 0) {
+                    el.style.display = 'none';
+                    if (addBtnWrapper) {
+                        let addBtn = addBtnWrapper.querySelector('.add-btn');
+                        if (!addBtn) {
+                            addBtn = document.createElement('button');
+                            addBtn.className = 'add-btn';
+                            addBtn.textContent = '+';
+                            addBtn.onclick = function(e) {
+                                e.stopPropagation();
+                                const food = allFoods.find(f => f.id === id);
+                                if (food) addToCart(food);
+                            };
+                            addBtnWrapper.appendChild(addBtn);
+                        }
+                        addBtn.style.display = 'flex';
+                    }
+                } else {
+                    el.style.display = 'flex';
+                    if (countEl) countEl.textContent = count;
+                    const addBtn = addBtnWrapper ? addBtnWrapper.querySelector('.add-btn') : null;
+                    if (addBtn) addBtn.style.display = 'none';
+                }
+            });
+        }
+
+        function toggleCart() {
+            const panel = document.getElementById('cartPanel');
+            const overlay = document.getElementById('cartOverlay');
+            if (panel.classList.contains('show')) {
+                closeCart();
+            } else {
+                panel.classList.add('show');
+                overlay.classList.add('show');
+            }
+        }
+
+        function closeCart() {
+            document.getElementById('cartPanel').classList.remove('show');
+            document.getElementById('cartOverlay').classList.remove('show');
+        }
+
+        async function submitOrder() {
+            if (cart.length === 0) {
+                showToast('购物车为空', 'error');
+                return;
+            }
+            const remark = document.getElementById('cartRemark').value;
+            const total = getTotalCartPrice();
+            const items = cart.map(c => ({ id: c.id, name: c.name, price: c.price, count: c.count }));
+
+            const res = await api('/orders', {
+                method: 'POST',
+                body: JSON.stringify({ items, total, remark, table_no: '' })
+            });
+
+            if (res.code === 0) {
+                cart = [];
+                document.getElementById('cartRemark').value = '';
+                updateCartUI();
+                closeCart();
+                showToast('下单成功！', 'success');
+                await loadOrders();
+                switchPage('orders');
+            } else {
+                showToast(res.msg || '下单失败', 'error');
+            }
+        }
+
+        function switchPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            document.querySelector('.tab-item[data-page="' + page + '"]').classList.add('active');
+            if (page === 'orders') loadOrders();
+        }
+
+        function startBannerSwiper() {
+            if (!allBanners.length) return;
+            const swiper = document.getElementById('bannerSwiper');
+            const updateBanner = () => {
+                const banner = allBanners[currentBannerIndex];
+                const dots = allBanners.map((_, i) => `<span class="dot${i === currentBannerIndex ? ' active' : ''}" onclick="goToBanner(${i})"></span>`).join('');
+                swiper.innerHTML = `
+              <img src="${banner.image}" alt="banner" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22468%22 height=%22180%22><rect fill=%22%23f5f5f5%22 width=%22468%22 height=%22180%22/><text x=%22234%22 y=%2296%22 text-anchor=%22middle%22 fill=%22%23ccc%22 font-size=%2216%22>暂无图片</text></svg>'">
+              <div class="banner-dots">${dots}</div>`;
+            };
+            updateBanner();
+            bannerTimer = setInterval(() => {
+                currentBannerIndex = (currentBannerIndex + 1) % allBanners.length;
+                updateBanner();
+            }, 3000);
+        }
+
+        function goToBanner(index) {
+            currentBannerIndex = index;
+            if (bannerTimer) {
+                clearInterval(bannerTimer);
+                bannerTimer = setInterval(() => {
+                    currentBannerIndex = (currentBannerIndex + 1) % allBanners.length;
+                    startBannerSwiper();
+                }, 3000);
+            }
+            startBannerSwiper();
+        }
+
+        function renderCategories(containerId, categories, activeId, onSelect) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = categories.map(cat => `
+            <div class="cat-item${cat.id === activeId ? ' active' : ''}" data-id="${cat.id}">
+              <img class="cat-icon" src="${cat.icon}" alt="${cat.name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22><rect fill=%22%23f5f5f5%22 width=%2248%22 height=%2248%22 rx=%2224%22/></svg>'">
+              <span class="cat-name">${cat.name}</span>
+            </div>`).join('');
+            
+            container.querySelectorAll('.cat-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    event.stopPropagation();
+                    onSelect(parseInt(item.dataset.id));
+                });
+            });
+        }
+
+        function selectHomeCategory(id) {
+            document.querySelectorAll('#categories .cat-item').forEach(el => el.classList.remove('active'));
+            const target = document.querySelector('#categories .cat-item[data-id="' + id + '"]');
+            if (target) target.classList.add('active');
+            switchPage('menu');
+            selectMenuCategory(id);
+        }
+
+        function selectMenuCategory(id) {
+            document.querySelectorAll('#menuCategories .cat-item').forEach(el => el.classList.remove('active'));
+            const target = document.querySelector('#menuCategories .cat-item[data-id="' + id + '"]');
+            if (target) target.classList.add('active');
+
+            const cat = allCategories.find(c => c.id === id);
+            document.getElementById('menuSectionTitle').textContent = cat ? cat.name : '全部菜品';
+
+            const foods = allFoods.filter(f => f.category_id === id && f.is_on_sale === 1);
+            renderFoodList('menuFoods', foods);
+        }
+
+        function renderFoodList(containerId, foods) {
+            const container = document.getElementById(containerId);
+            if (!foods.length) {
+                container.innerHTML = '<div class="empty"><div class="icon">🍽️</div><div class="text">暂无菜品</div></div>';
+                return;
+            }
+            container.innerHTML = foods.map(food => {
+                const count = getCartCount(food.id);
+                const tagHtml = food.sales > 2000 ? '<span class="hot-tag hot">热卖</span>' :
+                    (food.sales < 500 ? '<span class="hot-tag new">新品</span>' : '');
+                return `
+              <div class="food-card" onclick="showFoodDetail(${food.id})">
+                <img class="food-img" src="${food.image}" alt="${food.name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2296%22 height=%2296%22><rect fill=%22%23f5f5f5%22 width=%2296%22 height=%2296%22 rx=%228%22/></svg>'">
+                <div class="food-info">
+                  <div class="food-name">${food.name}${tagHtml}</div>
+                  <div class="food-desc">${food.desc || ''}</div>
+                  <div class="food-bottom">
+                    <span class="food-price"><span class="unit">¥</span>${food.price}</span>
+                    <span class="food-sales">已售 ${food.sales || 0}</span>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:flex-end;flex-shrink:0;">
+                  <div class="stepper" data-id="${food.id}" style="display:${count > 0 ? 'flex' : 'none'}">
+                    <button class="btn-minus" onclick="event.stopPropagation();reduceFromCart(${food.id})">−</button>
+                    <span class="stepper-count" data-id="${food.id}">${count}</span>
+                    <button class="btn-plus" onclick="event.stopPropagation();addToCart({id:${food.id},name:'${food.name.replace(/'/g, "\\'")}',image:'${food.image}',price:${food.price}})">+</button>
+                  </div>
+                  <button class="add-btn" onclick="event.stopPropagation();addToCart({id:${food.id},name:'${food.name.replace(/'/g, "\\'")}',image:'${food.image}',price:${food.price}})" style="display:${count > 0 ? 'none' : 'flex'}">+</button>
+                </div>
+              </div>`;
+            }).join('');
+        }
+
+        function showFoodDetail(id) {
+            const food = allFoods.find(f => f.id === id);
+            if (!food) return;
+            alert(`🍽️ ${food.name}\n\n💰 价格：¥${food.price}\n📝 描述：${food.desc || '暂无'}\n📊 销量：${food.sales || 0}\n\n${food.detail || ''}`);
+        }
+
+        async function loadOrders() {
+            const res = await api('/orders');
+            if (res.code === 0) {
+                allOrders = res.data || [];
+                const currentTab = document.querySelector('#orderTabs .order-tab.active');
+                const status = currentTab ? currentTab.dataset.status : 'all';
+                filterOrders(status);
+            }
+        }
+
+        function filterOrders(status) {
+            document.querySelectorAll('#orderTabs .order-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.status === status);
+            });
+
+            let orders = allOrders;
+            if (status !== 'all') {
+                orders = allOrders.filter(o => o.status === status);
+            }
+
+            const container = document.getElementById('orderList');
+            if (!orders.length) {
+                container.innerHTML = '<div class="empty"><div class="icon">📦</div><div class="text">暂无订单</div></div>';
+                return;
+            }
+
+            const statusMap = {
+                'pending': '待处理',
+                'cooking': '制作中',
+                'completed': '已完成',
+                'cancelled': '已取消'
+            };
+
+            container.innerHTML = orders.map(order => {
+                const itemsStr = (order.items || []).map(i => i.name + ' x' + i.count).join('、');
+                const statusText = statusMap[order.status] || order.status;
+                return `
+              <div class="order-card">
+                <div class="order-header">
+                  <span class="order-id">📋 ${order.id}</span>
+                  <span class="order-status status-${order.status}">${statusText}</span>
+                </div>
+                <div class="order-items">${itemsStr}</div>
+                <div class="order-bottom">
+                  <span class="order-total">¥${parseFloat(order.total).toFixed(2)}</span>
+                  <span class="order-time">${order.create_time || ''}</span>
+                </div>
+              </div>`;
+            }).join('');
+        }
+
+        function initOrderTabs() {
+            document.getElementById('orderTabs').innerHTML = [
+                { status: 'all', label: '全部' },
+                { status: 'pending', label: '待处理' },
+                { status: 'cooking', label: '制作中' },
+                { status: 'completed', label: '已完成' },
+            ].map(t => `<div class="order-tab active" data-status="${t.status}" onclick="filterOrders('${t.status}')">${t.label}</div>`).join('');
+            document.querySelector('#orderTabs .order-tab').classList.add('active');
+        }
+
+        async function init() {
+            const [catRes, foodRes, bannerRes] = await Promise.all([
+                api('/categories'),
+                api('/foods'),
+                api('/banners')
+            ]);
+
+            if (catRes.code === 0) {
+                allCategories = catRes.data || [];
+                renderCategories('categories', allCategories, allCategories[0] ? allCategories[0].id : 0, selectHomeCategory);
+                renderCategories('menuCategories', allCategories, allCategories[0] ? allCategories[0].id : 0, selectMenuCategory);
+            }
+
+            if (foodRes.code === 0) {
+                allFoods = foodRes.data || [];
+                const hotFoods = allFoods.filter(f => f.is_on_sale === 1).sort((a, b) => b.sales - a.sales).slice(0, 6);
+                renderFoodList('hotFoods', hotFoods);
+                if (allCategories.length > 0) {
+                    selectMenuCategory(allCategories[0].id);
+                }
+            }
+
+            if (bannerRes.code === 0) {
+                allBanners = bannerRes.data || [];
+                startBannerSwiper();
+            }
+
+            initOrderTabs();
+            updateCartUI();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

@@ -1,20 +1,74 @@
+'use strict';
+
 App({
     globalData: {
         cart: [],
         cartTotal: 0,
         cartCount: 0,
         userInfo: null,
+        hasLogin: false,
+        isGuest: false,
         orders: []
     },
 
     onLaunch() {
         this.loadCartFromStorage();
         this.loadOrdersFromStorage();
+        this.loadUserFromStorage();
+    },
+
+    loadUserFromStorage() {
+        const userInfo = wx.getStorageSync('userInfo');
+        const hasLogin = wx.getStorageSync('hasLogin') || false;
+        const isGuest = wx.getStorageSync('isGuest') || false;
+        if (userInfo) {
+            this.globalData.userInfo = userInfo;
+            this.globalData.hasLogin = hasLogin;
+            this.globalData.isGuest = isGuest;
+        }
+    },
+
+    saveUserToStorage() {
+        if (this.globalData.userInfo) {
+            wx.setStorageSync('userInfo', this.globalData.userInfo);
+            wx.setStorageSync('hasLogin', this.globalData.hasLogin);
+            wx.setStorageSync('isGuest', this.globalData.isGuest);
+        }
+    },
+
+    login(userInfo) {
+        this.globalData.userInfo = userInfo;
+        this.globalData.hasLogin = true;
+        this.globalData.isGuest = false;
+        this.saveUserToStorage();
+    },
+
+    guestLogin() {
+        this.globalData.userInfo = {
+            nickName: '游客用户',
+            avatarUrl: '/images/user/default-avatar.png',
+            isGuest: true
+        };
+        this.globalData.hasLogin = true;
+        this.globalData.isGuest = true;
+        this.saveUserToStorage();
+    },
+
+    logout() {
+        this.globalData.userInfo = null;
+        this.globalData.hasLogin = false;
+        this.globalData.isGuest = false;
+        wx.removeStorageSync('userInfo');
+        wx.removeStorageSync('hasLogin');
+        wx.removeStorageSync('isGuest');
     },
 
     loadCartFromStorage() {
         const cart = wx.getStorageSync('cart') || [];
-        this.globalData.cart = cart;
+        this.globalData.cart = cart.map(item => ({
+            ...item,
+            count: item.count || 0
+        }));
         this.updateCartInfo();
     },
 

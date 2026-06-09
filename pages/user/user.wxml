@@ -2,12 +2,32 @@
   <view class="user-header">
     <view class="user-info" wx:if="{{hasLogin}}">
       <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" />
-      <text class="nickname">{{userInfo.nickName}}</text>
+      <view class="user-info-detail">
+        <view class="nickname-row">
+          <text class="nickname">{{userInfo.nickName}}</text>
+          <view class="guest-tag" wx:if="{{isGuest}}">游客</view>
+        </view>
+        <text class="user-tip" wx:if="{{isGuest}}">点击下方按钮可以切换为微信登录</text>
+      </view>
     </view>
-    <button class="login-btn" wx:else open-type="getUserInfo" bindgetuserinfo="onGetUserInfo">
+    <view class="login-area" wx:else>
       <image class="avatar-placeholder" src="/images/user/default-avatar.png" mode="aspectFill" />
-      <text class="login-text">点击登录</text>
-    </button>
+      <view class="login-buttons">
+        <view class="login-btn wechat-btn" bindtap="onWechatLogin">
+          <text class="btn-icon">💬</text>
+          <text class="btn-text">微信登录</text>
+        </view>
+        <view class="login-btn guest-btn" bindtap="onGuestLogin">
+          <text class="btn-icon">👤</text>
+          <text class="btn-text">游客登录</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="switch-login-btn" wx:if="{{hasLogin && isGuest}}" bindtap="onWechatLogin">
+    <text class="switch-icon">💬</text>
+    <text class="switch-text">切换为微信登录</text>
   </view>
 
   <view class="order-section">
@@ -64,6 +84,12 @@
       <text class="menu-icon">🗑️</text>
       <text class="menu-label">清除缓存</text>
       <text class="menu-arrow">></text>
+    </view>
+  </view>
+
+  <view class="logout-section" wx:if="{{hasLogin}}">
+    <view class="logout-btn" bindtap="onLogout">
+      <text>退出登录</text>
     </view>
   </view>
 </view>

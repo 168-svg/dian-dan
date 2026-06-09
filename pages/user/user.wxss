@@ -12,6 +12,18 @@
 .user-info {
   display: flex;
   align-items: center;
+  width: 100%;
+}
+
+.user-info-detail {
+  flex: 1;
+  margin-left: 24rpx;
+}
+
+.nickname-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
 }
 
 .avatar {
@@ -19,27 +31,34 @@
   height: 120rpx;
   border-radius: 50%;
   border: 4rpx solid rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
 }
 
 .nickname {
   font-size: 36rpx;
   color: #fff;
   font-weight: bold;
-  margin-left: 24rpx;
 }
 
-.login-btn {
+.guest-tag {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  margin-left: 16rpx;
+  font-size: 22rpx;
+  color: #fff;
+}
+
+.user-tip {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.login-area {
   display: flex;
   align-items: center;
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  line-height: 1;
-}
-
-.login-btn::after {
-  border: none;
+  width: 100%;
+  flex-direction: column;
 }
 
 .avatar-placeholder {
@@ -48,12 +67,69 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.3);
   border: 4rpx solid rgba(255, 255, 255, 0.5);
+  margin-bottom: 30rpx;
 }
 
-.login-text {
-  font-size: 32rpx;
+.login-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  width: 100%;
+  align-items: center;
+}
+
+.login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18rpx 40rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  width: 400rpx;
+}
+
+.wechat-btn {
+  background: #fff;
+  color: #ff6b35;
+}
+
+.guest-btn {
+  background: rgba(255, 255, 255, 0.3);
   color: #fff;
-  margin-left: 24rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.6);
+}
+
+.btn-icon {
+  margin-right: 12rpx;
+  font-size: 32rpx;
+}
+
+.btn-text {
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.switch-login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  margin: 20rpx;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  margin-top: -20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.switch-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.switch-text {
+  font-size: 28rpx;
+  color: #ff6b35;
+  font-weight: bold;
 }
 
 .order-section {
@@ -151,4 +227,18 @@
 .menu-arrow {
   font-size: 26rpx;
   color: #ccc;
+}
+
+.logout-section {
+  padding: 40rpx 20rpx;
+}
+
+.logout-btn {
+  background: #fff;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  text-align: center;
+  font-size: 30rpx;
+  color: #ff6b35;
+  font-weight: bold;
 }

@@ -1,3 +1,5 @@
+'use strict';
+
 const app = getApp();
 const { formatDateTime } = require('../../utils/util');
 
@@ -19,7 +21,8 @@ Page({
 
         const cartItems = cart.map(item => ({
             ...item,
-            subtotal: (item.price * item.count).toFixed(2)
+            count: item.count || 0,
+            subtotal: (item.price * (item.count || 0)).toFixed(2)
         }));
 
         this.setData({
