@@ -176,10 +176,7 @@ app.get('/api/orders', (req, res) => {
     const page = safeInt(req.query.page, 1);
     const pageSize = safeInt(req.query.page_size, 1, 100);
     const userId = safeInt(req.query.user_id, 0);
-    if (userId === null || userId === undefined) {
-        return res.json({ code: 1, msg: '需要用户信息' });
-    }
-    let orders = db.getOrders(status || null, userId);
+    let orders = db.getOrders(status || null, userId || 0);
     orders = orders.map(o => {
         let items = [];
         try {
