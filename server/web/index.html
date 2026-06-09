@@ -1233,10 +1233,11 @@
             const remark = document.getElementById('cartRemark').value;
             const total = getTotalCartPrice();
             const items = cart.map(c => ({ id: c.id, name: c.name, price: c.price, count: c.count }));
+            const user_id = currentUser ? currentUser.id : 0;
 
             const res = await api('/orders', {
                 method: 'POST',
-                body: JSON.stringify({ items, total, remark, table_no: '' })
+                body: JSON.stringify({ items, total, remark, table_no: '', user_id })
             });
 
             if (res.code === 0) {
@@ -1366,7 +1367,8 @@
         }
 
         async function loadOrders() {
-            const res = await api('/orders');
+            const user_id = currentUser ? currentUser.id : 0;
+            const res = await api('/orders?user_id=' + user_id);
             if (res.code === 0) {
                 allOrders = res.data || [];
                 const currentTab = document.querySelector('#orderTabs .order-tab.active');

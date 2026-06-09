@@ -79,12 +79,14 @@ async function initDB() {
     db.run(`
     CREATE TABLE IF NOT EXISTS orders (
       id TEXT PRIMARY KEY,
+      user_id INTEGER DEFAULT 0,
       items TEXT NOT NULL,
       total REAL NOT NULL DEFAULT 0,
       status TEXT DEFAULT 'pending',
       remark TEXT DEFAULT '',
       table_no TEXT DEFAULT '',
-      create_time TEXT DEFAULT (datetime('now','localtime'))
+      create_time TEXT DEFAULT (datetime('now','localtime')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )`);
     db.run(`
     CREATE TABLE IF NOT EXISTS banners (
@@ -230,17 +232,32 @@ function deleteFood(id) {
     execute('DELETE FROM foods WHERE id=?', [id]);
 }
 
-function getOrders(status) {
+function getOrders(status, userId) {
     let sql = 'SELECT * FROM orders';
-    if (status && status !== 'all') {
-        return queryAll(sql + ' WHERE status=? ORDER BY create_time DESC', [status]);
+    let params = [];
+    
+    if (userId && userId !== '0') {
+        sql += ' WHERE user_id=?';
+        params.push(userId);
     }
-    return queryAll(sql + ' ORDER BY create_time DESC');
+    
+    if (status && status !== 'all') {
+        if (params.length > 0) {
+            sql += ' AND status=?';
+        } else {
+            sql += ' WHERE status=?';
+        }
+        params.push(status);
+    }
+    
+    sql += ' ORDER BY create_time DESC';
+    return queryAll(sql, params);
 }
 
 function createOrder(data) {
     const id = 'DD' + Date.now() + Math.random().toString(36).slice(2, 6).toUpperCase();
-    execute('INSERT INTO orders (id, items, total, status, remark, table_no) VALUES (?, ?, ?, ?, ?, ?)', [id, JSON.stringify(data.items), data.total, 'pending', data.remark || '', data.table_no || '']);
+    const userId = data.user_id || 0;
+    execute('INSERT INTO orders (id, user_id, items, total, status, remark, table_no) VALUES (?, ?, ?, ?, ?, ?, ?)', [id, userId, JSON.stringify(data.items), data.total, 'pending', data.remark || '', data.table_no || '']);
     return { id };
 }
 

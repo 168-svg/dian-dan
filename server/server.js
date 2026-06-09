@@ -94,8 +94,8 @@ app.delete('/api/foods/:id', (req, res) => {
 });
 
 app.get('/api/orders', (req, res) => {
-    const { status, page, page_size } = req.query;
-    let orders = db.getOrders(status || null);
+    const { status, page, page_size, user_id } = req.query;
+    let orders = db.getOrders(status || null, user_id || null);
     orders = orders.map(o => ({...o, items: JSON.parse(o.items) }));
     const total = orders.length;
     if (page && page_size) {
@@ -108,9 +108,9 @@ app.get('/api/orders', (req, res) => {
 });
 
 app.post('/api/orders', (req, res) => {
-    const { items, total, remark, table_no } = req.body;
+    const { items, total, remark, table_no, user_id } = req.body;
     if (!items || !items.length) return res.json({ code: 1, msg: '订单商品不能为空' });
-    const result = db.createOrder({ items, total, remark, table_no });
+    const result = db.createOrder({ items, total, remark, table_no, user_id });
     res.json({ code: 0, data: result });
 });
 
