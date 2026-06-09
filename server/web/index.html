@@ -1525,7 +1525,10 @@
                 saveUser(res.data);
                 closeLogin();
                 showToast('登录成功', 'success');
-                renderUserPage();
+                setTimeout(() => {
+                    renderUserPage();
+                    loadOrders();
+                }, 300);
             } else {
                 showToast(res.msg || '登录失败', 'error');
             }
@@ -1567,7 +1570,10 @@
                 saveUser(res.data);
                 closeLogin();
                 showToast('游客登录成功', 'success');
-                renderUserPage();
+                setTimeout(() => {
+                    renderUserPage();
+                    loadOrders();
+                }, 300);
             } else {
                 showToast(res.msg || '游客登录失败', 'error');
             }
