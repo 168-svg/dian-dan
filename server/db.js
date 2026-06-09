@@ -92,6 +92,17 @@ async function initDB() {
       image TEXT NOT NULL,
       sort_order INTEGER DEFAULT 0
     )`);
+    db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      nickname TEXT DEFAULT '',
+      phone TEXT DEFAULT '',
+      avatar TEXT DEFAULT '',
+      is_guest INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now','localtime'))
+    )`);
     saveDB();
 }
 
@@ -282,6 +293,34 @@ function getDashboard() {
     };
 }
 
+function getUserById(id) {
+    const user = queryOne('SELECT * FROM users WHERE id=?', [id]);
+    if (user) delete user.password;
+    return user;
+}
+
+function getUserByUsername(username) {
+    return queryOne('SELECT * FROM users WHERE username=?', [username]);
+}
+
+function createUser(username, password, nickname = '', phone = '', isGuest = 0) {
+    execute('INSERT INTO users (username, password, nickname, phone, is_guest) VALUES (?, ?, ?, ?, ?)', [username, password, nickname, phone, isGuest]);
+    const userId = lastInsertId();
+    return getUserById(userId);
+}
+
+function updateUser(id, data) {
+    const fields = [];
+    const params = [];
+    if (data.nickname !== undefined) { fields.push('nickname=?'); params.push(data.nickname); }
+    if (data.phone !== undefined) { fields.push('phone=?'); params.push(data.phone); }
+    if (data.avatar !== undefined) { fields.push('avatar=?'); params.push(data.avatar); }
+    if (data.password !== undefined) { fields.push('password=?'); params.push(data.password); }
+    if (fields.length === 0) return;
+    params.push(id);
+    execute(`UPDATE users SET ${fields.join(',')} WHERE id=?`, params);
+}
+
 module.exports = {
     initDB,
     seedData,
@@ -304,5 +343,9 @@ module.exports = {
     addBanner,
     updateBanner,
     deleteBanner,
-    getDashboard
+    getDashboard,
+    getUserById,
+    getUserByUsername,
+    createUser,
+    updateUser
 };

@@ -152,6 +152,68 @@ app.get('/api/dashboard', (req, res) => {
     res.json({ code: 0, data: db.getDashboard() });
 });
 
+app.post('/api/users/register', (req, res) => {
+    const { username, password, nickname, phone } = req.body;
+    if (!username || !password) {
+        return res.json({ code: 1, msg: '用户名和密码不能为空' });
+    }
+    if (username.length < 3 || username.length > 20) {
+        return res.json({ code: 1, msg: '用户名长度必须在3-20个字符之间' });
+    }
+    if (password.length < 6) {
+        return res.json({ code: 1, msg: '密码长度不能少于6个字符' });
+    }
+    
+    const existing = db.getUserByUsername(username);
+    if (existing) {
+        return res.json({ code: 1, msg: '用户名已存在' });
+    }
+    
+    const user = db.createUser(username, password, nickname, phone, 0);
+    res.json({ code: 0, data: user, msg: '注册成功' });
+});
+
+app.post('/api/users/login', (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.json({ code: 1, msg: '用户名和密码不能为空' });
+    }
+    
+    const user = db.getUserByUsername(username);
+    if (!user) {
+        return res.json({ code: 1, msg: '用户名不存在' });
+    }
+    if (user.password !== password) {
+        return res.json({ code: 1, msg: '密码错误' });
+    }
+    
+    delete user.password;
+    res.json({ code: 0, data: user, msg: '登录成功' });
+});
+
+app.post('/api/users/guest-login', (req, res) => {
+    const guestUsername = 'guest_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    const guestPassword = 'guest_' + Math.random().toString(36).slice(2, 10);
+    
+    const user = db.createUser(guestUsername, guestPassword, '游客', '', 1);
+    res.json({ code: 0, data: user, msg: '游客登录成功' });
+});
+
+app.get('/api/users/:id', (req, res) => {
+    const user = db.getUserById(req.params.id);
+    if (!user) {
+        return res.json({ code: 1, msg: '用户不存在' });
+    }
+    res.json({ code: 0, data: user });
+});
+
+app.put('/api/users/:id', (req, res) => {
+    const { nickname, phone, avatar, password } = req.body;
+    db.updateUser(req.params.id, { nickname, phone, avatar, password });
+    const user = db.getUserById(req.params.id);
+    res.json({ code: 0, data: user, msg: '更新成功' });
+});
+
 app.use('/images', express.static(path.join(__dirname, '..', 'images')));
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 app.use('/web', express.static(path.join(__dirname, 'web')));

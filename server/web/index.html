@@ -688,6 +688,255 @@
             background: #e6f7ff;
             color: #1890ff;
         }
+
+        .login-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-overlay.show {
+            display: flex;
+        }
+
+        .login-panel {
+            background: #fff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 360px;
+            padding: 24px;
+            position: relative;
+        }
+
+        .login-panel .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .login-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .login-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .login-tab.active {
+            background: #ff6b35;
+            color: #fff;
+        }
+
+        .login-form {
+            display: none;
+        }
+
+        .login-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: #ff6b35;
+        }
+
+        .form-group input::placeholder {
+            color: #bbb;
+        }
+
+        .submit-btn-lg {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: #fff;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .submit-btn-lg:hover {
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+        }
+
+        .submit-btn-lg:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .guest-btn {
+            width: 100%;
+            padding: 12px;
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #e8e8e8;
+            border-radius: 24px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+
+        .guest-btn:hover {
+            background: #eee;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: #fff;
+            border-radius: 12px;
+            margin: 0 16px 16px;
+        }
+
+        .user-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .user-detail {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .user-type {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .user-menu {
+            background: #fff;
+            margin: 0 16px 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .user-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .user-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-menu-item:hover {
+            background: #fafafa;
+        }
+
+        .user-menu-icon {
+            font-size: 20px;
+            margin-right: 12px;
+        }
+
+        .user-menu-text {
+            flex: 1;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .user-menu-arrow {
+            color: #ccc;
+            font-size: 16px;
+        }
+
+        .edit-profile-panel {
+            background: #fff;
+            margin: 0 16px 16px;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .edit-profile-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .logout-btn {
+            width: calc(100% - 32px);
+            margin: 0 16px;
+            padding: 14px;
+            background: #fff1f0;
+            color: #f5222d;
+            border: 1px solid #ffccc7;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background: #ffccc7;
+        }
     </style>
 </head>
 
@@ -723,6 +972,10 @@
         <div id="orderList"></div>
     </div>
 
+    <div class="page" id="page-user">
+        <div id="userContent"></div>
+    </div>
+
     <div class="tabbar">
         <div class="tab-item active" data-page="home" onclick="switchPage('home')">
             <span class="tab-icon">🏠</span>
@@ -735,6 +988,10 @@
         <div class="tab-item" data-page="orders" onclick="switchPage('orders')">
             <span class="tab-icon">📋</span>
             <span class="tab-label">订单</span>
+        </div>
+        <div class="tab-item" data-page="user" onclick="switchPage('user')">
+            <span class="tab-icon">👤</span>
+            <span class="tab-label">我的</span>
         </div>
     </div>
 
@@ -757,6 +1014,49 @@
 
     <div class="toast" id="toast"></div>
 
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-panel">
+            <button class="close-btn" onclick="closeLogin()">×</button>
+            <div class="login-tabs">
+                <div class="login-tab active" onclick="switchLoginTab('login')">登录</div>
+                <div class="login-tab" onclick="switchLoginTab('register')">注册</div>
+            </div>
+            
+            <div class="login-form active" id="loginForm">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入用户名">
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码">
+                </div>
+                <button class="submit-btn-lg" onclick="handleLogin()">登录</button>
+                <button class="guest-btn" onclick="handleGuestLogin()">👤 游客登录</button>
+            </div>
+            
+            <div class="login-form" id="registerForm">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="regUsername" placeholder="请输入用户名（3-20字符）">
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="regPassword" placeholder="请输入密码（至少6位）">
+                </div>
+                <div class="form-group">
+                    <label>昵称（选填）</label>
+                    <input type="text" id="regNickname" placeholder="请输入昵称">
+                </div>
+                <div class="form-group">
+                    <label>手机号（选填）</label>
+                    <input type="tel" id="regPhone" placeholder="请输入手机号">
+                </div>
+                <button class="submit-btn-lg" onclick="handleRegister()">注册</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API = '/api';
         let cart = [];
@@ -766,6 +1066,7 @@
         let allBanners = [];
         let currentBannerIndex = 0;
         let bannerTimer = null;
+        let currentUser = null;
 
         function showToast(msg, type) {
             const t = document.getElementById('toast');
@@ -957,6 +1258,7 @@
             document.getElementById('page-' + page).classList.add('active');
             document.querySelector('.tab-item[data-page="' + page + '"]').classList.add('active');
             if (page === 'orders') loadOrders();
+            if (page === 'user') renderUserPage();
         }
 
         function startBannerSwiper() {
@@ -1153,6 +1455,221 @@
 
             initOrderTabs();
             updateCartUI();
+            loadUser();
+        }
+
+        function loadUser() {
+            const savedUser = localStorage.getItem('user');
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                } catch (e) {
+                    currentUser = null;
+                }
+            }
+        }
+
+        function saveUser(user) {
+            currentUser = user;
+            localStorage.setItem('user', JSON.stringify(user));
+        }
+
+        function clearUser() {
+            currentUser = null;
+            localStorage.removeItem('user');
+        }
+
+        function showLogin() {
+            document.getElementById('loginOverlay').classList.add('show');
+        }
+
+        function closeLogin() {
+            document.getElementById('loginOverlay').classList.remove('show');
+        }
+
+        function switchLoginTab(tab) {
+            document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
+            document.querySelector('.login-tab:last-child').classList.toggle('active', tab === 'register');
+            document.querySelector('.login-tab:first-child').classList.toggle('active', tab === 'login');
+            document.getElementById(tab + 'Form').classList.add('active');
+        }
+
+        async function handleLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!username || !password) {
+                showToast('请填写用户名和密码', 'error');
+                return;
+            }
+
+            const res = await api('/users/login', {
+                method: 'POST',
+                body: JSON.stringify({ username, password })
+            });
+
+            if (res.code === 0) {
+                saveUser(res.data);
+                closeLogin();
+                showToast('登录成功', 'success');
+                renderUserPage();
+            } else {
+                showToast(res.msg || '登录失败', 'error');
+            }
+        }
+
+        async function handleRegister() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const nickname = document.getElementById('regNickname').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+
+            if (!username || !password) {
+                showToast('用户名和密码不能为空', 'error');
+                return;
+            }
+
+            const res = await api('/users/register', {
+                method: 'POST',
+                body: JSON.stringify({ username, password, nickname, phone })
+            });
+
+            if (res.code === 0) {
+                saveUser(res.data);
+                closeLogin();
+                showToast('注册成功', 'success');
+                renderUserPage();
+            } else {
+                showToast(res.msg || '注册失败', 'error');
+            }
+        }
+
+        async function handleGuestLogin() {
+            const res = await api('/users/guest-login', {
+                method: 'POST',
+                body: JSON.stringify({})
+            });
+
+            if (res.code === 0) {
+                saveUser(res.data);
+                closeLogin();
+                showToast('游客登录成功', 'success');
+                renderUserPage();
+            } else {
+                showToast(res.msg || '游客登录失败', 'error');
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('确定要退出登录吗？')) {
+                clearUser();
+                showToast('已退出登录', 'success');
+                renderUserPage();
+            }
+        }
+
+        function renderUserPage() {
+            const container = document.getElementById('userContent');
+            
+            if (!currentUser) {
+                container.innerHTML = `
+                    <div class="empty" style="padding-top: 100px;">
+                        <div class="icon" style="font-size: 64px;">👤</div>
+                        <div class="text" style="font-size: 16px; margin-top: 16px;">请先登录</div>
+                        <button class="submit-btn-lg" style="margin-top: 24px; max-width: 200px;" onclick="showLogin()">登录 / 注册</button>
+                    </div>`;
+                return;
+            }
+
+            const userType = currentUser.is_guest === 1 ? '游客' : '普通用户';
+            const avatarEmoji = currentUser.is_guest === 1 ? '👤' : '😊';
+            
+            container.innerHTML = `
+                <div class="user-info">
+                    <div class="user-avatar">${avatarEmoji}</div>
+                    <div class="user-detail">
+                        <div class="user-name">${currentUser.nickname || currentUser.username}</div>
+                        <div class="user-type">${userType}</div>
+                    </div>
+                </div>
+                
+                <div class="user-menu">
+                    <div class="user-menu-item" onclick="editProfile()">
+                        <span class="user-menu-icon">✏️</span>
+                        <span class="user-menu-text">编辑资料</span>
+                        <span class="user-menu-arrow">›</span>
+                    </div>
+                    <div class="user-menu-item" onclick="switchPage('orders')">
+                        <span class="user-menu-icon">📋</span>
+                        <span class="user-menu-text">我的订单</span>
+                        <span class="user-menu-arrow">›</span>
+                    </div>
+                    <div class="user-menu-item">
+                        <span class="user-menu-icon">⭐</span>
+                        <span class="user-menu-text">我的收藏</span>
+                        <span class="user-menu-arrow">›</span>
+                    </div>
+                    <div class="user-menu-item">
+                        <span class="user-menu-icon">ℹ️</span>
+                        <span class="user-menu-text">关于我们</span>
+                        <span class="user-menu-arrow">›</span>
+                    </div>
+                </div>
+                
+                <button class="logout-btn" onclick="handleLogout()">退出登录</button>`;
+        }
+
+        function editProfile() {
+            if (!currentUser) return;
+            
+            const container = document.getElementById('userContent');
+            container.innerHTML = `
+                <div class="edit-profile-panel">
+                    <div class="edit-profile-title">✏️ 编辑资料</div>
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input type="text" id="editUsername" value="${currentUser.username || ''}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>昵称</label>
+                        <input type="text" id="editNickname" value="${currentUser.nickname || ''}" placeholder="请输入昵称">
+                    </div>
+                    <div class="form-group">
+                        <label>手机号</label>
+                        <input type="tel" id="editPhone" value="${currentUser.phone || ''}" placeholder="请输入手机号">
+                    </div>
+                    <div class="form-group">
+                        <label>新密码（留空则不修改）</label>
+                        <input type="password" id="editPassword" placeholder="请输入新密码">
+                    </div>
+                    <button class="submit-btn-lg" onclick="saveProfile()">保存修改</button>
+                    <button class="guest-btn" onclick="renderUserPage()">返回</button>
+                </div>`;
+        }
+
+        async function saveProfile() {
+            const nickname = document.getElementById('editNickname').value.trim();
+            const phone = document.getElementById('editPhone').value.trim();
+            const password = document.getElementById('editPassword').value;
+
+            const data = {};
+            if (nickname) data.nickname = nickname;
+            if (phone) data.phone = phone;
+            if (password) data.password = password;
+
+            const res = await api(`/users/${currentUser.id}`, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+
+            if (res.code === 0) {
+                saveUser(res.data);
+                showToast('修改成功', 'success');
+                renderUserPage();
+            } else {
+                showToast(res.msg || '修改失败', 'error');
+            }
         }
 
         init();

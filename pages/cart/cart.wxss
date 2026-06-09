@@ -11,7 +11,7 @@
 }
 
 .empty-icon {
-  font-size: 100rpx;
+  font-size: 100rpx；
   margin-bottom: 30rpx;
 }
 
