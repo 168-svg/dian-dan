@@ -1,0 +1,52 @@
+<view class="container">
+  <view class="search-bar" bindtap="onSearchTap">
+    <view class="search-input">
+      <text class="search-icon">🔍</text>
+      <text class="search-placeholder">搜索美食、菜品</text>
+    </view>
+  </view>
+
+  <swiper class="banner-swiper" indicator-dots indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#ff6b35" autoplay circular interval="3000">
+    <swiper-item wx:for="{{banners}}" wx:key="id">
+      <image class="banner-image" src="{{item.image}}" mode="aspectFill" />
+    </swiper-item>
+  </swiper>
+
+  <view class="category-section">
+    <view class="section-title">分类导航</view>
+    <view class="category-grid">
+      <view class="category-item" wx:for="{{categories}}" wx:key="id" wx:for-item="cat" bindtap="onCategoryTap" data-id="{{cat.id}}" data-name="{{cat.name}}">
+        <image class="category-icon" src="{{cat.icon}}" mode="aspectFit" />
+        <text class="category-name">{{cat.name}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="hot-section">
+    <view class="section-header">
+      <view class="section-title">🔥 热销推荐</view>
+      <text class="section-more" bindtap="onMoreTap">更多 ></text>
+    </view>
+    <scroll-view class="hot-scroll" scroll-x enable-flex>
+      <view class="hot-item" wx:for="{{hotList}}" wx:key="id" bindtap="onFoodTap" data-id="{{item.id}}">
+        <view class="hot-image-wrap">
+          <image class="hot-image" src="{{item.image}}" mode="aspectFill" />
+          <view class="hot-tag" wx:if="{{item.tag}}">{{item.tag}}</view>
+        </view>
+        <view class="hot-info">
+          <text class="hot-name text-ellipsis">{{item.name}}</text>
+          <view class="hot-bottom">
+            <text class="price">{{item.price}}</text>
+            <text class="hot-sales">已售{{item.sales}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="cart-entry" bindtap="onCartTap" wx:if="{{cartCount > 0}}">
+    <view class="cart-badge">{{cartCount}}</view>
+    <text class="cart-text">去结算</text>
+    <text class="cart-arrow">></text>
+  </view>
+</view>

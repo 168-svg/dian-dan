@@ -1,0 +1,60 @@
+<view class="container">
+  <view class="menu-layout">
+    <scroll-view class="category-sidebar" scroll-y enhanced show-scrollbar="{{false}}">
+      <view
+        class="category-item {{activeCategory === item.id ? 'active' : ''}}"
+        wx:for="{{categories}}"
+        wx:key="id"
+        wx:for-item="item"
+        bindtap="onCategoryTap"
+        data-id="{{item.id}}"
+      >
+        <image class="category-icon" src="{{item.icon}}" mode="aspectFit" />
+        <text class="category-name">{{item.name}}</text>
+        <view class="active-bar" wx:if="{{activeCategory === item.id}}"></view>
+      </view>
+    </scroll-view>
+
+    <scroll-view class="food-list" scroll-y enhanced show-scrollbar="{{false}}" scroll-top="{{scrollTop}}">
+      <view class="food-item" wx:for="{{foodList}}" wx:key="id" bindtap="onFoodTap" data-id="{{item.id}}">
+        <image class="food-image" src="{{item.image}}" mode="aspectFill" />
+        <view class="food-info">
+          <text class="food-name text-ellipsis">{{item.name}}</text>
+          <text class="food-desc text-ellipsis">{{item.desc}}</text>
+          <text class="food-sales">已售{{item.sales}}份</text>
+          <view class="food-bottom">
+            <text class="price">{{item.price}}</text>
+            <view class="cart-control">
+              <view class="btn-reduce" wx:if="{{item.count > 0}}" catchtap="onReduceFromCart" data-id="{{item.id}}">
+                <text>-</text>
+              </view>
+              <text class="count-text" wx:if="{{item.count > 0}}">{{item.count}}</text>
+              <view class="btn-add" catchtap="onAddToCart" data-item="{{item}}">
+                <text>+</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="empty-tip" wx:if="{{foodList.length === 0}}">
+        <text>暂无菜品</text>
+      </view>
+
+      <view style="height: 120rpx;"></view>
+    </scroll-view>
+  </view>
+
+  <view class="cart-bar" wx:if="{{cartCount > 0}}">
+    <view class="cart-info">
+      <view class="cart-icon-wrap">
+        <text class="cart-icon">🛒</text>
+        <view class="cart-badge">{{cartCount}}</view>
+      </view>
+      <text class="price cart-total-price">{{cartTotal}}</text>
+    </view>
+    <view class="cart-btn" bindtap="onCartTap">
+      <text>去结算</text>
+    </view>
+  </view>
+</view>

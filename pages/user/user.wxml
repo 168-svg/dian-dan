@@ -1,0 +1,69 @@
+<view class="container">
+  <view class="user-header">
+    <view class="user-info" wx:if="{{hasLogin}}">
+      <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" />
+      <text class="nickname">{{userInfo.nickName}}</text>
+    </view>
+    <button class="login-btn" wx:else open-type="getUserInfo" bindgetuserinfo="onGetUserInfo">
+      <image class="avatar-placeholder" src="/images/user/default-avatar.png" mode="aspectFill" />
+      <text class="login-text">点击登录</text>
+    </button>
+  </view>
+
+  <view class="order-section">
+    <view class="section-header" bindtap="onAllOrders">
+      <text class="section-title">我的订单</text>
+      <text class="section-more">全部订单 ></text>
+    </view>
+    <view class="order-grid">
+      <view class="order-grid-item" bindtap="onOrderTap" data-status="pending">
+        <text class="grid-icon">📝</text>
+        <text class="grid-label">待处理</text>
+        <view class="grid-badge" wx:if="{{orderSummary.pending > 0}}">{{orderSummary.pending}}</view>
+      </view>
+      <view class="order-grid-item" bindtap="onOrderTap" data-status="cooking">
+        <text class="grid-icon">👨‍🍳</text>
+        <text class="grid-label">制作中</text>
+        <view class="grid-badge" wx:if="{{orderSummary.cooking > 0}}">{{orderSummary.cooking}}</view>
+      </view>
+      <view class="order-grid-item" bindtap="onOrderTap" data-status="done">
+        <text class="grid-icon">✅</text>
+        <text class="grid-label">已完成</text>
+        <view class="grid-badge" wx:if="{{orderSummary.done > 0}}">{{orderSummary.done}}</view>
+      </view>
+      <view class="order-grid-item" bindtap="onAllOrders">
+        <text class="grid-icon">📋</text>
+        <text class="grid-label">全部</text>
+        <view class="grid-badge" wx:if="{{orderSummary.total > 0}}">{{orderSummary.total}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="menu-section">
+    <view class="menu-item" bindtap="onAddress">
+      <text class="menu-icon">📍</text>
+      <text class="menu-label">地址管理</text>
+      <text class="menu-arrow">></text>
+    </view>
+    <view class="menu-item" bindtap="onCoupon">
+      <text class="menu-icon">🎫</text>
+      <text class="menu-label">优惠券</text>
+      <text class="menu-arrow">></text>
+    </view>
+    <view class="menu-item" bindtap="onService">
+      <text class="menu-icon">📞</text>
+      <text class="menu-label">联系客服</text>
+      <text class="menu-arrow">></text>
+    </view>
+    <view class="menu-item" bindtap="onAbout">
+      <text class="menu-icon">ℹ️</text>
+      <text class="menu-label">关于我们</text>
+      <text class="menu-arrow">></text>
+    </view>
+    <view class="menu-item" bindtap="onClearCache">
+      <text class="menu-icon">🗑️</text>
+      <text class="menu-label">清除缓存</text>
+      <text class="menu-arrow">></text>
+    </view>
+  </view>
+</view>

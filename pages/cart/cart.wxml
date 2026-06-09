@@ -1,0 +1,53 @@
+<view class="container">
+  <view class="cart-empty" wx:if="{{isEmpty}}">
+    <text class="empty-icon">🛒</text>
+    <text class="empty-text">购物车是空的</text>
+    <text class="empty-desc">快去点餐页面选购美食吧~</text>
+    <view class="go-menu-btn" bindtap="onGoMenu">去点餐</view>
+  </view>
+
+  <block wx:else>
+    <view class="cart-header">
+      <text class="header-title">共{{cartItems.length}}件商品</text>
+      <view class="clear-btn" bindtap="onClearCart">清空</view>
+    </view>
+
+    <view class="cart-list">
+      <view class="cart-item" wx:for="{{cartItems}}" wx:key="id">
+        <image class="cart-item-image" src="{{item.image}}" mode="aspectFill" />
+        <view class="cart-item-info">
+          <text class="cart-item-name text-ellipsis">{{item.name}}</text>
+          <text class="price">{{item.price}}</text>
+          <view class="cart-item-bottom">
+            <view class="cart-control">
+              <view class="btn-reduce" bindtap="onReduce" data-id="{{item.id}}">
+                <text>-</text>
+              </view>
+              <text class="count-text">{{item.count}}</text>
+              <view class="btn-add" bindtap="onAdd" data-item="{{item}}">
+                <text>+</text>
+              </view>
+            </view>
+            <text class="item-total price">{{item.subtotal}}</text>
+          </view>
+        </view>
+        <view class="remove-btn" bindtap="onRemove" data-id="{{item.id}}" data-name="{{item.name}}">
+          <text>删除</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="remark-section">
+      <text class="remark-label">备注</text>
+      <input class="remark-input" placeholder="如有特殊要求请备注（可选）" value="{{remark}}" bindinput="onRemarkInput" />
+    </view>
+
+    <view class="cart-footer">
+      <view class="footer-total">
+        <text class="total-label">合计：</text>
+        <text class="price total-price">{{cartTotalText}}</text>
+      </view>
+      <view class="submit-btn" bindtap="onSubmit">提交订单</view>
+    </view>
+  </block>
+</view>

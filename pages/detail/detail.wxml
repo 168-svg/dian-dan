@@ -1,0 +1,75 @@
+<view class="container" wx:if="{{food}}">
+  <view class="video-section">
+    <video
+      class="detail-video"
+      src="{{food.video}}"
+      poster="{{food.image}}"
+      controls
+      object-fit="cover"
+      bindplay="onVideoPlay"
+      bindpause="onVideoPause"
+      bindended="onVideoEnd"
+      show-center-play-btn="{{!videoPlaying}}"
+      show-play-btn="{{videoPlaying}}"
+    ></video>
+    <view class="video-mask" wx:if="{{!videoPlaying}}">
+      <view class="play-btn">
+        <text class="play-icon">▶</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="info-section">
+    <view class="info-header">
+      <text class="food-name">{{food.name}}</text>
+      <text class="food-sales">已售{{food.sales}}份</text>
+    </view>
+    <view class="price-row">
+      <text class="price current-price">{{food.price}}</text>
+      <text class="original-price">¥{{food.price * 1.5}}</text>
+    </view>
+    <view class="desc-row">
+      <text class="desc-label">简介</text>
+      <text class="desc-text">{{food.desc}}</text>
+    </view>
+    <view class="detail-row">
+      <text class="desc-label">详情</text>
+      <text class="detail-text">{{food.detail}}</text>
+    </view>
+  </view>
+
+  <view class="related-section" wx:if="{{relatedFoods.length > 0}}">
+    <view class="section-title">推荐搭配</view>
+    <scroll-view class="related-scroll" scroll-x enable-flex>
+      <view class="related-item" wx:for="{{relatedFoods}}" wx:key="id" bindtap="onRelatedTap" data-id="{{item.id}}">
+        <image class="related-image" src="{{item.image}}" mode="aspectFill" />
+        <view class="related-info">
+          <text class="related-name text-ellipsis">{{item.name}}</text>
+          <text class="price">{{item.price}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view style="height: 120rpx;"></view>
+</view>
+
+<view class="cart-bar" wx:if="{{food}}">
+  <view class="cart-info" bindtap="onCartTap">
+    <view class="cart-icon-wrap">
+      <text class="cart-icon">🛒</text>
+      <view class="cart-badge" wx:if="{{cartCount > 0}}">{{cartCount}}</view>
+    </view>
+  </view>
+
+  <view class="cart-controls" wx:if="{{itemCount > 0}}">
+    <view class="btn-reduce" bindtap="onReduceFromCart">
+      <text>-</text>
+    </view>
+    <text class="count-text">{{itemCount}}</text>
+  </view>
+
+  <view class="add-btn" bindtap="onAddToCart">
+    <text>{{itemCount > 0 ? '再加一份' : '加入购物车'}}</text>
+  </view>
+</view>
