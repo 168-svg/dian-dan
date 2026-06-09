@@ -3,10 +3,13 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const jwt = require('jsonwebtoken');
 const db = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'dian_dan_system_secret_key_2024';
+const JWT_EXPIRES_IN = '7d';
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -60,6 +63,51 @@ app.use((err, req, res, next) => {
         next();
     }
 });
+
+// JWT Token 生成
+function generateToken(user) {
+    return jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+}
+
+// 认证中间件：验证 JWT Token 并设置 req.user
+function authMiddleware(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        // 兼容旧版：尝试从 query 参数获取 user_id
+        const userId = safeInt(req.query.user_id, 1);
+        if (userId) {
+            req.user = db.getUserById(userId);
+            return next();
+        }
+        return res.json({ code: 401, msg: '未登录，请先登录' });
+    }
+    const token = authHeader.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = db.getUserById(decoded.id);
+        if (!req.user) {
+            return res.json({ code: 401, msg: '用户不存在' });
+        }
+        next();
+    } catch (err) {
+        return res.json({ code: 401, msg: '登录已过期，请重新登录' });
+    }
+}
+
+// 可选认证：不强制要求登录，但如果有 token 则解析
+function optionalAuth(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET);
+            req.user = db.getUserById(decoded.id);
+        } catch (err) {
+            // token 无效，忽略
+        }
+    }
+    next();
+}
 
 app.post('/api/upload', upload.single('file'), (req, res) => {
     if (!req.file) return res.json({ code: 1, msg: '请选择图片文件' });
@@ -171,14 +219,11 @@ app.delete('/api/foods/:id', (req, res) => {
     res.json({ code: 0, msg: '删除成功' });
 });
 
-app.get('/api/orders', (req, res) => {
+app.get('/api/orders', optionalAuth, (req, res) => {
     const status = safeStr(req.query.status, 20);
     const page = safeInt(req.query.page, 1);
     const pageSize = safeInt(req.query.page_size, 1, 100);
-    const userId = safeInt(req.query.user_id, 0);
-    if (userId === null || userId === undefined) {
-        return res.json({ code: 1, msg: '需要用户信息' });
-    }
+    const userId = req.user ? req.user.id : 0;
     let orders = db.getOrders(status || null, userId);
     orders = orders.map(o => {
         let items = [];
@@ -197,11 +242,8 @@ app.get('/api/orders', (req, res) => {
     res.json({ code: 0, data: orders, total, page: page || 1, page_size: pageSize || total });
 });
 
-app.post('/api/orders', (req, res) => {
-    const userId = safeInt(req.body.user_id, 0);
-    if (userId === null || userId === undefined || userId === 0) {
-        return res.json({ code: 1, msg: '请先登录再下单' });
-    }
+app.post('/api/orders', authMiddleware, (req, res) => {
+    const userId = req.user.id;
     const { items } = req.body;
     if (!items || !Array.isArray(items) || items.length === 0) {
         return res.json({ code: 1, msg: '订单商品不能为空' });
@@ -296,7 +338,8 @@ app.post('/api/users/register', (req, res) => {
     const nickname = safeStr(req.body.nickname, 50);
     const phone = safeStr(req.body.phone, 20);
     const user = db.createUser(username, password, nickname, phone, 0);
-    res.json({ code: 0, data: user, msg: '注册成功' });
+    const token = generateToken(user);
+    res.json({ code: 0, data: { ...user, token }, msg: '注册成功' });
 });
 
 app.post('/api/users/login', (req, res) => {
@@ -312,15 +355,23 @@ app.post('/api/users/login', (req, res) => {
     if (user.password !== password) {
         return res.json({ code: 1, msg: '密码错误' });
     }
+    const token = generateToken(user);
     delete user.password;
-    res.json({ code: 0, data: user, msg: '登录成功' });
+    res.json({ code: 0, data: { ...user, token }, msg: '登录成功' });
 });
 
 app.post('/api/users/guest-login', (req, res) => {
     const guestUsername = 'guest_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
     const guestPassword = 'guest_' + Math.random().toString(36).slice(2, 10);
     const user = db.createUser(guestUsername, guestPassword, '游客', '', 1);
-    res.json({ code: 0, data: user, msg: '游客登录成功' });
+    const token = generateToken(user);
+    res.json({ code: 0, data: { ...user, token }, msg: '游客登录成功' });
+});
+
+app.get('/api/users/me', authMiddleware, (req, res) => {
+    const user = { ...req.user };
+    delete user.password;
+    res.json({ code: 0, data: user });
 });
 
 app.get('/api/users/:id', (req, res) => {

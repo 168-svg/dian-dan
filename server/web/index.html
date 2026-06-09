@@ -1078,7 +1078,12 @@
 
         async function api(url, options = {}) {
             try {
-                const res = await fetch(API + url, { headers: { 'Content-Type': 'application/json' }, ...options });
+                const headers = { 'Content-Type': 'application/json' };
+                const token = getToken();
+                if (token) {
+                    headers['Authorization'] = 'Bearer ' + token;
+                }
+                const res = await fetch(API + url, { headers, ...options });
                 return await res.json();
             } catch (e) {
                 showToast('网络错误: ' + e.message, 'error');
@@ -1238,11 +1243,10 @@
             const remark = document.getElementById('cartRemark').value;
             const total = getTotalCartPrice();
             const items = cart.map(c => ({ id: c.id, name: c.name, price: c.price, count: c.count }));
-            const user_id = currentUser.id;
 
             const res = await api('/orders', {
                 method: 'POST',
-                body: JSON.stringify({ items, total, remark, table_no: '', user_id })
+                body: JSON.stringify({ items, total, remark, table_no: '' })
             });
 
             if (res.code === 0) {
@@ -1377,8 +1381,7 @@
                 filterOrders('all');
                 return;
             }
-            const user_id = currentUser.id;
-            const res = await api('/orders?user_id=' + user_id);
+            const res = await api('/orders');
             if (res.code === 0) {
                 allOrders = res.data || [];
                 const currentTab = document.querySelector('#orderTabs .order-tab.active');
@@ -1467,10 +1470,44 @@
 
             initOrderTabs();
             updateCartUI();
-            loadUser();
+            await loadUser();
+            renderUserPage();
         }
 
-        function loadUser() {
+        function saveUser(user) {
+            currentUser = user;
+            localStorage.setItem('user', JSON.stringify(user));
+            if (user.token) {
+                localStorage.setItem('token', user.token);
+            }
+        }
+
+        function clearUser() {
+            currentUser = null;
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+        }
+
+        function getToken() {
+            return localStorage.getItem('token');
+        }
+
+        async function loadUser() {
+            const token = getToken();
+            if (token) {
+                // 尝试用 token 从服务端恢复用户信息
+                try {
+                    const res = await api('/users/me');
+                    if (res.code === 0 && res.data) {
+                        currentUser = res.data;
+                        localStorage.setItem('user', JSON.stringify(res.data));
+                        return;
+                    }
+                } catch (e) {
+                    localStorage.removeItem('token');
+                }
+            }
+            // 降级：从 localStorage 恢复
             const savedUser = localStorage.getItem('user');
             if (savedUser) {
                 try {
@@ -1479,16 +1516,6 @@
                     currentUser = null;
                 }
             }
-        }
-
-        function saveUser(user) {
-            currentUser = user;
-            localStorage.setItem('user', JSON.stringify(user));
-        }
-
-        function clearUser() {
-            currentUser = null;
-            localStorage.removeItem('user');
         }
 
         function showLogin() {
