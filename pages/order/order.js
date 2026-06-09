@@ -14,7 +14,7 @@ function getStatusText(status) {
     const map = {
         pending: '待处理',
         cooking: '制作中',
-        done: '已完成',
+        completed: '已完成',
         cancelled: '已取消'
     };
     return map[status] || '未知';
@@ -55,14 +55,14 @@ Page({
                     totalText: Number(o.total).toFixed(2),
                     status: o.status,
                     statusText: getStatusText(o.status),
-                    createTime: formatTime(o.created_at || o.createdAt),
+                    createTime: formatTime(o.create_time),
                     remark: o.remark || ''
-                })).sort((a, b) => b.id - a.id);
+                })).sort((a, b) => b.id.localeCompare(a.id));
 
                 let orders = allOrders;
                 if (currentTab === 1) orders = allOrders.filter(o => o.status === 'pending');
                 else if (currentTab === 2) orders = allOrders.filter(o => o.status === 'cooking');
-                else if (currentTab === 3) orders = allOrders.filter(o => o.status === 'done');
+                else if (currentTab === 3) orders = allOrders.filter(o => o.status === 'completed');
 
                 this.setData({ orders, isEmpty: orders.length === 0 });
             } else {
@@ -100,7 +100,7 @@ Page({
         wx.showModal({
             title: '提示',
             content: '确定要取消此订单吗？',
-            success: async (res) => {
+            success: async(res) => {
                 if (res.confirm) {
                     try {
                         const r = await apiUpdateOrderStatus(id, 'cancelled');
@@ -123,7 +123,7 @@ Page({
         wx.showModal({
             title: '提示',
             content: '确定要删除此订单吗？',
-            success: async (res) => {
+            success: async(res) => {
                 if (res.confirm) {
                     try {
                         const r = await apiDeleteOrder(id);

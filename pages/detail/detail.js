@@ -1,7 +1,7 @@
 'use strict';
 
 const app = getApp();
-const { getFoodById, getAllFoods } = require('../../utils/foodData');
+const { apiGetFood, apiGetFoods } = require('../../utils/api');
 
 Page({
     data: {
@@ -15,11 +15,7 @@ Page({
     onLoad(options) {
         const foodId = parseInt(options.id);
         if (foodId) {
-            const food = getFoodById(foodId);
-            if (food) {
-                this.setData({ food });
-                this.loadRelatedFoods(foodId);
-            }
+            this.loadFood(foodId);
         }
     },
 
@@ -27,13 +23,32 @@ Page({
         this.updateCartCount();
     },
 
-    loadRelatedFoods(currentId) {
-        const allFoods = getAllFoods();
-        const related = allFoods
-            .filter(item => item.id !== currentId)
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 4);
-        this.setData({ relatedFoods: related });
+    async loadFood(foodId) {
+        try {
+            const res = await apiGetFood(foodId);
+            if (res.code === 0 && res.data) {
+                this.setData({ food: res.data });
+                this.loadRelatedFoods(foodId);
+                this.updateCartCount();
+            }
+        } catch (err) {
+            console.error('加载菜品详情失败', err);
+        }
+    },
+
+    async loadRelatedFoods(currentId) {
+        try {
+            const res = await apiGetFoods();
+            if (res.code === 0 && res.data) {
+                const related = res.data
+                    .filter(item => item.id !== currentId)
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, 4);
+                this.setData({ relatedFoods: related });
+            }
+        } catch (err) {
+            console.error('加载推荐菜品失败', err);
+        }
     },
 
     onVideoPlay() {
@@ -80,13 +95,17 @@ Page({
         });
     },
 
-    onRelatedTap(e) {
+    async onRelatedTap(e) {
         const { id } = e.currentTarget.dataset;
-        const food = getFoodById(id);
-        if (food) {
-            this.setData({ food, itemCount: 0 });
-            this.loadRelatedFoods(id);
-            this.updateCartCount();
+        try {
+            const res = await apiGetFood(id);
+            if (res.code === 0 && res.data) {
+                this.setData({ food: res.data, itemCount: 0 });
+                this.loadRelatedFoods(id);
+                this.updateCartCount();
+            }
+        } catch (err) {
+            console.error('加载推荐菜品失败', err);
         }
     },
 

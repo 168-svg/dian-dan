@@ -52,15 +52,6 @@ function safeFloat(val, min = 0) {
     return n < min ? min : n;
 }
 
-app.use((err, req, res, next) => {
-    if (err) {
-        console.error('[ERROR]', err.message);
-        res.json({ code: 1, msg: '服务器内部错误' });
-    } else {
-        next();
-    }
-});
-
 app.post('/api/upload', upload.single('file'), (req, res) => {
     if (!req.file) return res.json({ code: 1, msg: '请选择图片文件' });
     const url = '/images/upload/' + req.file.filename;
@@ -187,7 +178,7 @@ app.get('/api/orders', (req, res) => {
         } catch (e) {
             items = [];
         }
-        return { ...o, items };
+        return {...o, items };
     });
     const total = orders.length;
     if (page && pageSize) {
@@ -355,6 +346,11 @@ app.use('/web', express.static(path.join(__dirname, 'web')));
 
 app.get('/', (req, res) => {
     res.send('点单系统 API 服务正常运行');
+});
+
+app.use((err, req, res, next) => {
+    console.error('[ERROR]', err.message);
+    res.json({ code: 1, msg: '服务器内部错误' });
 });
 
 async function start() {

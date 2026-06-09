@@ -65,7 +65,7 @@ Page({
                     name: f.name,
                     image: f.image,
                     price: f.price,
-                    desc: f.description || '',
+                    desc: f.desc || '',
                     sales: f.sales || 0,
                     count: 0
                 }));
