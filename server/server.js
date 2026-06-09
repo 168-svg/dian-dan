@@ -160,7 +160,7 @@ async function start() {
     await db.initDB();
     await db.seedData();
 
-    const PORT = 3000;
+    const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
         console.log(`点单系统后端服务已启动`);
         console.log(`   API: http://localhost:${PORT}/api`);
