@@ -19,12 +19,16 @@ App({
 
     loadUserFromStorage() {
         const userInfo = wx.getStorageSync('userInfo');
-        const hasLogin = wx.getStorageSync('hasLogin') || false;
-        const isGuest = wx.getStorageSync('isGuest') || false;
-        if (userInfo) {
+        const hasLogin = wx.getStorageSync('hasLogin');
+        const isGuest = wx.getStorageSync('isGuest');
+        if (userInfo && hasLogin === true) {
             this.globalData.userInfo = userInfo;
-            this.globalData.hasLogin = hasLogin;
-            this.globalData.isGuest = isGuest;
+            this.globalData.hasLogin = true;
+            this.globalData.isGuest = isGuest === true;
+        } else if (userInfo) {
+            wx.removeStorageSync('userInfo');
+            wx.removeStorageSync('hasLogin');
+            wx.removeStorageSync('isGuest');
         }
     },
 
