@@ -233,20 +233,11 @@ function deleteFood(id) {
 }
 
 function getOrders(status, userId) {
-    let sql = 'SELECT * FROM orders';
-    let params = [];
-    
-    if (userId && userId !== '0') {
-        sql += ' WHERE user_id=?';
-        params.push(userId);
-    }
+    let sql = 'SELECT * FROM orders WHERE user_id=?';
+    let params = [userId || 0];
     
     if (status && status !== 'all') {
-        if (params.length > 0) {
-            sql += ' AND status=?';
-        } else {
-            sql += ' WHERE status=?';
-        }
+        sql += ' AND status=?';
         params.push(status);
     }
     

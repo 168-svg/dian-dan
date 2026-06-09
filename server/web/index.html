@@ -1226,6 +1226,11 @@
         }
 
         async function submitOrder() {
+            if (!currentUser) {
+                showToast('请先登录再下单', 'error');
+                showLogin();
+                return;
+            }
             if (cart.length === 0) {
                 showToast('购物车为空', 'error');
                 return;
@@ -1233,7 +1238,7 @@
             const remark = document.getElementById('cartRemark').value;
             const total = getTotalCartPrice();
             const items = cart.map(c => ({ id: c.id, name: c.name, price: c.price, count: c.count }));
-            const user_id = currentUser ? currentUser.id : 0;
+            const user_id = currentUser.id;
 
             const res = await api('/orders', {
                 method: 'POST',
@@ -1367,7 +1372,12 @@
         }
 
         async function loadOrders() {
-            const user_id = currentUser ? currentUser.id : 0;
+            if (!currentUser) {
+                allOrders = [];
+                filterOrders('all');
+                return;
+            }
+            const user_id = currentUser.id;
             const res = await api('/orders?user_id=' + user_id);
             if (res.code === 0) {
                 allOrders = res.data || [];
