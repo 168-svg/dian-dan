@@ -1524,8 +1524,7 @@
             if (res.code === 0) {
                 saveUser(res.data);
                 closeLogin();
-                closeCart();
-                showToast('登录成功', 'success');
+                showToast('登录成功，可以提交订单了', 'success');
                 setTimeout(() => {
                     renderUserPage();
                     loadOrders();
@@ -1554,8 +1553,7 @@
             if (res.code === 0) {
                 saveUser(res.data);
                 closeLogin();
-                closeCart();
-                showToast('注册成功', 'success');
+                showToast('注册成功，可以提交订单了', 'success');
                 setTimeout(() => {
                     renderUserPage();
                     loadOrders();
@@ -1574,8 +1572,7 @@
             if (res.code === 0) {
                 saveUser(res.data);
                 closeLogin();
-                closeCart();
-                showToast('游客登录成功', 'success');
+                showToast('游客登录成功，可以提交订单了', 'success');
                 setTimeout(() => {
                     renderUserPage();
                     loadOrders();
