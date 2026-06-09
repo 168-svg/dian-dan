@@ -373,6 +373,10 @@
             max-height: 300px;
             overflow-y: auto;
         }
+        
+        .stat-clickable { cursor: pointer; }
+        .stat-clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+        .stat-arrow { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; color: #ccc; }
     </style>
 </head>
 
@@ -633,16 +637,25 @@
             });
         });
 
+        function navigateToPanel(panel) {
+            document.querySelectorAll('.nav a').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelector('.nav a[data-panel="' + panel + '"]').classList.add('active');
+            document.getElementById('panel-' + panel).classList.add('active');
+            if (panel === 'orders') loadOrders();
+            if (panel === 'foods') loadFoods();
+        }
+
         // ==================== Dashboard ====================
         async function loadDashboard() {
             const res = await api('/dashboard');
             if (res.code !== 0) return;
             const d = res.data;
             document.getElementById('stats').innerHTML = `
-                <div class="stat-card blue"><div class="label">总订单数</div><div class="value">${d.totalOrders}</div><div class="sub">今日新增 ${d.todayOrders}</div></div>
-                <div class="stat-card orange"><div class="label">总营收</div><div class="value">¥${d.totalRevenue}</div><div class="sub">今日营收 ¥${d.todayRevenue}</div></div>
-                <div class="stat-card red"><div class="label">待处理</div><div class="value">${d.pendingOrders}</div><div class="sub">制作中 ${d.cookingOrders}</div></div>
-                <div class="stat-card green"><div class="label">已完成</div><div class="value">${d.completedOrders}</div><div class="sub">共 ${d.totalFoods} 个菜品 / ${d.totalCategories} 个分类</div></div>
+                <div class="stat-card blue stat-clickable" onclick="navigateToPanel('orders')"><div class="label">总订单数</div><div class="value">${d.totalOrders}</div><div class="sub">今日新增 ${d.todayOrders}</div><span class="stat-arrow">→</span></div>
+                <div class="stat-card orange stat-clickable" onclick="navigateToPanel('orders')"><div class="label">总营收</div><div class="value">¥${d.totalRevenue}</div><div class="sub">今日营收 ¥${d.todayRevenue}</div><span class="stat-arrow">→</span></div>
+                <div class="stat-card red stat-clickable" onclick="navigateToPanel('orders')"><div class="label">待处理</div><div class="value">${d.pendingOrders}</div><div class="sub">制作中 ${d.cookingOrders}</div><span class="stat-arrow">→</span></div>
+                <div class="stat-card green stat-clickable" onclick="navigateToPanel('foods')"><div class="label">已完成</div><div class="value">${d.completedOrders}</div><div class="sub">共 ${d.totalFoods} 个菜品 / ${d.totalCategories} 个分类</div><span class="stat-arrow">→</span></div>
             `;
 
             const ordersRes = await api('/orders');
