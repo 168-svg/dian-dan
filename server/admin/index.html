@@ -843,7 +843,7 @@
             document.getElementById('orderTable').innerHTML = orders.length ? orders.map(o => `
                 <tr>
                     <td><strong>${o.id}</strong></td>
-                    <td>${(o.items || []).map(i => i.name + '×' + i.quantity).join('<br>') || '-'}</td>
+                    <td>${(o.items || []).map(i => i.name + '×' + i.count).join('<br>') || '-'}</td>
                     <td>¥${o.total.toFixed(2)}</td>
                     <td>${o.table_no || '-'}</td>
                     <td><span class="status ${statusClass[o.status]}">${statusMap[o.status]}</span></td>

@@ -301,9 +301,13 @@ function deleteFood(id) {
 }
 
 function getOrders(status, userId) {
-    const uid = parseInt(userId) || 0;
-    let sql = 'SELECT * FROM orders WHERE user_id=?';
-    let params = [uid];
+    let sql = 'SELECT * FROM orders WHERE 1=1';
+    let params = [];
+    if (userId !== null && userId !== undefined) {
+        const uid = parseInt(userId) || 0;
+        sql += ' AND user_id=?';
+        params.push(uid);
+    }
     if (status && status !== 'all') {
         sql += ' AND status=?';
         params.push(safeStr(status, 20));
