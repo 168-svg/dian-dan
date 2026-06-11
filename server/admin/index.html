@@ -472,8 +472,8 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>订单号</th>
                             <th>商品</th>
+                            <th>订单号</th>
                             <th>金额</th>
                             <th>桌号</th>
                             <th>状态</th>
@@ -842,8 +842,8 @@
             const statusClass = { pending: 'status-pending', cooking: 'status-cooking', completed: 'status-completed', cancelled: 'status-cancelled' };
             document.getElementById('orderTable').innerHTML = orders.length ? orders.map(o => `
                 <tr>
-                    <td><strong>${o.id}</strong></td>
                     <td>${(o.items || []).map(i => i.name + '×' + i.count).join('<br>') || '-'}</td>
+                    <td><strong>${o.id}</strong></td>
                     <td>¥${o.total.toFixed(2)}</td>
                     <td>${o.table_no || '-'}</td>
                     <td><span class="status ${statusClass[o.status]}">${statusMap[o.status]}</span></td>
